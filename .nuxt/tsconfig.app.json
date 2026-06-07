@@ -163,7 +163,6 @@
     "../layers/*/*.d.ts"
   ],
   "exclude": [
-    "../../node_modules",
     "../dist",
     "../.data",
     "../modules/*/runtime/server/**/*",
@@ -185,5 +184,10 @@
     "../node_modules/nuxt/node_modules/dist/*.*",
     "dev",
     "../server"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "plugins": [
+      "vue-router/volar/sfc-route-blocks"
+    ]
+  }
 }

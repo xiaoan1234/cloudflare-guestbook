@@ -178,7 +178,6 @@
   ],
   "exclude": [
     "../node_modules",
-    "../../node_modules",
     "../node_modules/nuxt/node_modules",
     "../node_modules/@nuxthub/core/node_modules",
     "../node_modules/nuxt/node_modules/@nuxt/devtools/node_modules",
@@ -192,5 +191,10 @@
     "../node_modules/dist/runtime/server",
     "../node_modules/nuxt/node_modules/runtime/server",
     "../node_modules/nuxt/node_modules/dist/runtime/server"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "plugins": [
+      "vue-router/volar/sfc-route-blocks"
+    ]
+  }
 }

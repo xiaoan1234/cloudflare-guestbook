@@ -7,8 +7,8 @@ import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent
 import { escapeHtml } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@vue/shared/dist/shared.cjs.js';
 import viteNodeEntry_mjs from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { drizzle } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/d1/index.js';
-import { desc } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/index.js';
 import { sqliteTable, integer, text } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/sqlite-core/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file://E:/cangku/cloudflare-guestbook/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file://E:/cangku/cloudflare-guestbook/node_modules/ufo/dist/index.mjs';
@@ -30,7 +30,6 @@ import { digest, hash as hash$1 } from 'file://E:/cangku/cloudflare-guestbook/no
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { getContext } from 'file://E:/cangku/cloudflare-guestbook/node_modules/unctx/dist/index.mjs';
 import { toRouteMatcher, createRouter } from 'file://E:/cangku/cloudflare-guestbook/node_modules/radix3/dist/index.mjs';
-import { readFile } from 'node:fs/promises';
 import consola, { consola as consola$1 } from 'file://E:/cangku/cloudflare-guestbook/node_modules/consola/dist/index.mjs';
 import { ErrorParser } from 'file://E:/cangku/cloudflare-guestbook/node_modules/youch-core/build/index.js';
 import { Youch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/youch/build/index.js';
@@ -2708,14 +2707,20 @@ async function getIslandContext(event) {
 	};
 }
 
+const _lazy_w9lz2M = () => Promise.resolve().then(function () { return delete_post$1; });
+const _lazy_Tfm05L = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy_xTG9k6 = () => Promise.resolve().then(function () { return messages_get$1; });
 const _lazy_GZlV0x = () => Promise.resolve().then(function () { return messages_post$1; });
+const _lazy_gtheov = () => Promise.resolve().then(function () { return messages_reply_post$1; });
 const _lazy_xCo3xo = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
   { route: '', handler: _wH6Q1g, lazy: false, middleware: true, method: undefined },
+  { route: '/api/admin/delete', handler: _lazy_w9lz2M, lazy: true, middleware: false, method: "post" },
+  { route: '/api/login', handler: _lazy_Tfm05L, lazy: true, middleware: false, method: "post" },
   { route: '/api/messages', handler: _lazy_xTG9k6, lazy: true, middleware: false, method: "get" },
   { route: '/api/messages', handler: _lazy_GZlV0x, lazy: true, middleware: false, method: "post" },
+  { route: '/api/messages.reply', handler: _lazy_gtheov, lazy: true, middleware: false, method: "post" },
   { route: '/__nuxt_error', handler: _lazy_xCo3xo, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_xCo3xo, lazy: true, middleware: false, method: undefined }
@@ -3077,21 +3082,47 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   default: styles
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const messages = sqliteTable("messages", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  text: text("text").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+const delete_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { id } = body;
+  const file = new URL("../../../data/messages.json", globalThis._importMeta_.url);
+  const data = JSON.parse(await readFile(file, "utf-8"));
+  const idx = data.findIndex((m) => m.id === id);
+  if (idx === -1) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  data.splice(idx, 1);
+  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  return { ok: true };
 });
 
-const messages_get = defineEventHandler(async (event) => {
-  var _a, _b;
-  const d1 = (_b = (_a = event.context.cloudflare) == null ? void 0 : _a.env) == null ? void 0 : _b.DB;
-  if (!d1) {
-    throw createError({ statusCode: 500, message: "D1 \u6570\u636E\u5E93\u672A\u7ED1\u5B9A" });
+const delete_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: delete_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const login_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { username, password } = body;
+  if (!/^[\u4e00-\u9fa5]+$/.test(username)) {
+    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587" });
   }
-  const db = drizzle(d1);
-  return await db.select().from(messages).orderBy(desc(messages.createdAt));
+  if (!/^\d{6,}$/.test(password)) {
+    throw createError({ statusCode: 400, statusMessage: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
+  }
+  if (username === "\u7BA1\u7406\u5458" && password === "123456") {
+    return { token: "admin-token", role: "admin" };
+  }
+  return { token: "user-token", role: "user" };
+});
+
+const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: login_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const messages_get = defineEventHandler(async (event) => {
+  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
+  const data = await readFile(file, "utf-8");
+  return JSON.parse(data);
 });
 
 const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3099,10 +3130,22 @@ const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProp
   default: messages_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
+const messages = sqliteTable("messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  text: text("text").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+});
+
 const messages_post = defineEventHandler(async (event) => {
-  var _a, _b;
+  var _a, _b, _c;
   const body = await readBody(event);
-  const d1 = (_b = (_a = event.context.cloudflare) == null ? void 0 : _a.env) == null ? void 0 : _b.DB;
+  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
+  const data = JSON.parse(await readFile(file, "utf-8"));
+  const id = (((_a = data[data.length - 1]) == null ? void 0 : _a.id) || 0) + 1;
+  data.push({ id, user: body.user || "\u533F\u540D", text: body.text || "", replies: [] });
+  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  const d1 = (_c = (_b = event.context.cloudflare) == null ? void 0 : _b.env) == null ? void 0 : _c.DB;
   if (!d1) throw createError({ statusCode: 500, message: "D1 \u6570\u636E\u5E93\u672A\u7ED1\u5B9A" });
   if (!body.name || !body.text) throw createError({ statusCode: 400, message: "\u53C2\u6570\u7F3A\u5931" });
   const db = drizzle(d1);
@@ -3116,6 +3159,25 @@ const messages_post = defineEventHandler(async (event) => {
 const messages_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: messages_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const messages_reply_post = defineEventHandler(async (event) => {
+  var _a;
+  const body = await readBody(event);
+  const { id, text, user } = body;
+  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
+  const data = JSON.parse(await readFile(file, "utf-8"));
+  const msg = data.find((m) => m.id === id);
+  if (!msg) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  const rid = (((_a = msg.replies[msg.replies.length - 1]) == null ? void 0 : _a.id) || 0) + 1;
+  msg.replies.push({ id: rid, user: user || "\u533F\u540D", text: text || "" });
+  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  return { ok: true };
+});
+
+const messages_reply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: messages_reply_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {
