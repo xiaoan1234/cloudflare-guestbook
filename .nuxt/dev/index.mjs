@@ -8,8 +8,6 @@ import { escapeHtml } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@
 import viteNodeEntry_mjs from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { drizzle } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/d1/index.js';
-import { sqliteTable, integer, text } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/sqlite-core/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file://E:/cangku/cloudflare-guestbook/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file://E:/cangku/cloudflare-guestbook/node_modules/ufo/dist/index.mjs';
 import destr, { destr as destr$1 } from 'file://E:/cangku/cloudflare-guestbook/node_modules/destr/dist/index.mjs';
@@ -2177,7 +2175,22 @@ _EwqKvntwSBZfZ63sz4ATt1kR8NUnL3hSXp21WjF5BQ,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"1b6ee-UUrQhNXNNZDrWVZq6HXCeChNuu8\"",
+    "mtime": "2026-06-07T12:16:09.080Z",
+    "size": 112366,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"6cbf3-amkrI4+JCXceAzYvccUtng9wDRM\"",
+    "mtime": "2026-06-07T12:16:09.081Z",
+    "size": 445427,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -3130,29 +3143,15 @@ const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProp
   default: messages_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const messages = sqliteTable("messages", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  text: text("text").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
-});
-
 const messages_post = defineEventHandler(async (event) => {
-  var _a, _b, _c;
+  var _a;
   const body = await readBody(event);
+  if (!body || !body.text) throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
   const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
   const data = JSON.parse(await readFile(file, "utf-8"));
   const id = (((_a = data[data.length - 1]) == null ? void 0 : _a.id) || 0) + 1;
   data.push({ id, user: body.user || "\u533F\u540D", text: body.text || "", replies: [] });
   await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
-  const d1 = (_c = (_b = event.context.cloudflare) == null ? void 0 : _b.env) == null ? void 0 : _c.DB;
-  if (!d1) throw createError({ statusCode: 500, message: "D1 \u6570\u636E\u5E93\u672A\u7ED1\u5B9A" });
-  if (!body.name || !body.text) throw createError({ statusCode: 400, message: "\u53C2\u6570\u7F3A\u5931" });
-  const db = drizzle(d1);
-  await db.insert(messages).values({
-    name: body.name,
-    text: body.text
-  });
   return { success: true };
 });
 
