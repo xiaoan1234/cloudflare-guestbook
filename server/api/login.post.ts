@@ -1,56 +1,39 @@
-﻿// server/api/login.post.ts
+﻿// 登录 API：读取并写入 data/users.json，支持注册与验证
 import { readBody } from 'h3'
+// @ts-ignore
 import { readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
-
-const USERS_FILE = join(process.cwd(), 'data', 'users.json')
-
-async function getUsers() {
-  try {
-    const data = await readFile(USERS_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    // 如果文件不存在，返回默认管理员
-    return [{ username: '管理员', password: '1314520', role: 'admin' }]
-  }
-}
-
-async function saveUsers(users: any[]) {
-  await writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8')
-}
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const { username, password, isRegister } = body as any
-  
-  // 验证用户名
-  if (!/^[\u4e00-\u9fa5]+[\u4e00-\u9fa50-9]*$/.test(username)) {
-    throw createError({ statusCode: 400, statusMessage: '用户名必须为中文（可以包含数字）' })
-  }
-  
-  // 验证密码
-  if (!/^\d{6,}$/.test(password)) {
-    throw createError({ statusCode: 400, statusMessage: '密码必须为至少6位数字' })
-  }
-  
-  const users = await getUsers()
-  
-  // 注册逻辑
-  if (isRegister) {
-    const existingUser = users.find((u: any) => u.username === username)
-    if (existingUser) {
-      throw createError({ statusCode: 400, statusMessage: '用户名已存在' })
+  const body = await readBody(event) as any
+  const { username, password } = body || {}
+  if (!username || !password) throw createError({ statusCode: 400, statusMessage: '参数缺失' })
+  if (!/^[\u4e00-\u9fa5]+$/.test(username)) throw createError({ statusCode: 400, statusMessage: '用户名必须为中文' })
+  if (!/^\d{6,}$/.test(password)) throw createError({ statusCode: 400, statusMessage: '密码必须为至少6位数字' })
+
+  const usersFile = new URL('../../data/users.json', import.meta.url)
+  const usersData = JSON.parse(await readFile(usersFile, 'utf-8')) as any[]
+
+  // 管理员特殊处理（确保文件中存在正确的管理员密码）
+  if (username === '管理员' && password === '123456') {
+    const admin = usersData.find(u => u.username === '管理员')
+    if (admin) {
+      admin.password = '123456'
+    } else {
+      usersData.push({ username: '管理员', password: '123456', role: 'admin' })
     }
-    users.push({ username, password, role: 'user' })
-    await saveUsers(users)
-    return { success: true, token: `user-token-${Date.now()}`, role: 'user', message: '注册成功' }
+    await writeFile(usersFile, JSON.stringify(usersData, null, 2), 'utf-8')
+    return { token: 'admin-token', role: 'admin' }
   }
-  
-  // 登录逻辑
-  const user = users.find((u: any) => u.username === username)
-  if (!user || user.password !== password) {
-    throw createError({ statusCode: 400, statusMessage: '用户名或密码错误' })
+
+  // 普通用户：存在则验证密码，不存在则注册
+  const user = usersData.find(u => u.username === username)
+  if (user) {
+    if (user.password !== password) throw createError({ statusCode: 401, statusMessage: '密码错误' })
+    return { token: 'user-token', role: user.role || 'user' }
   }
-  
-  return { success: true, token: `${user.role}-token-${Date.now()}`, role: user.role }
+
+  // 注册新用户
+  usersData.push({ username, password, role: 'user' })
+  await writeFile(usersFile, JSON.stringify(usersData, null, 2), 'utf-8')
+  return { token: 'user-token', role: 'user' }
 })

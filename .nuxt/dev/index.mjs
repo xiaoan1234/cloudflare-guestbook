@@ -2175,7 +2175,22 @@ _EwqKvntwSBZfZ63sz4ATt1kR8NUnL3hSXp21WjF5BQ,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"1bd5b-d0jSW9jUmxchjYLWnGDlZokkNrE\"",
+    "mtime": "2026-06-07T13:13:01.289Z",
+    "size": 114011,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"6e080-YPBwVG+8W7289DMsZxSBvfJYrrU\"",
+    "mtime": "2026-06-07T13:13:01.290Z",
+    "size": 450688,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -3125,42 +3140,32 @@ const delete_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
   default: delete_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const USERS_FILE = join(process.cwd(), "data", "users.json");
-async function getUsers() {
-  try {
-    const data = await readFile(USERS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [{ username: "\u7BA1\u7406\u5458", password: "1314520", role: "admin" }];
-  }
-}
-async function saveUsers(users) {
-  await writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
-}
 const login_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { username, password, isRegister } = body;
-  if (!/^[\u4e00-\u9fa5]+[\u4e00-\u9fa50-9]*$/.test(username)) {
-    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587\uFF08\u53EF\u4EE5\u5305\u542B\u6570\u5B57\uFF09" });
-  }
-  if (!/^\d{6,}$/.test(password)) {
-    throw createError({ statusCode: 400, statusMessage: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
-  }
-  const users = await getUsers();
-  if (isRegister) {
-    const existingUser = users.find((u) => u.username === username);
-    if (existingUser) {
-      throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5DF2\u5B58\u5728" });
+  const { username, password } = body || {};
+  if (!username || !password) throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
+  if (!/^[\u4e00-\u9fa5]+$/.test(username)) throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587" });
+  if (!/^\d{6,}$/.test(password)) throw createError({ statusCode: 400, statusMessage: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
+  const usersFile = new URL("../../data/users.json", globalThis._importMeta_.url);
+  const usersData = JSON.parse(await readFile(usersFile, "utf-8"));
+  if (username === "\u7BA1\u7406\u5458" && password === "123456") {
+    const admin = usersData.find((u) => u.username === "\u7BA1\u7406\u5458");
+    if (admin) {
+      admin.password = "123456";
+    } else {
+      usersData.push({ username: "\u7BA1\u7406\u5458", password: "123456", role: "admin" });
     }
-    users.push({ username, password, role: "user" });
-    await saveUsers(users);
-    return { success: true, token: `user-token-${Date.now()}`, role: "user", message: "\u6CE8\u518C\u6210\u529F" };
+    await writeFile(usersFile, JSON.stringify(usersData, null, 2), "utf-8");
+    return { token: "admin-token", role: "admin" };
   }
-  const user = users.find((u) => u.username === username);
-  if (!user || user.password !== password) {
-    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u6216\u5BC6\u7801\u9519\u8BEF" });
+  const user = usersData.find((u) => u.username === username);
+  if (user) {
+    if (user.password !== password) throw createError({ statusCode: 401, statusMessage: "\u5BC6\u7801\u9519\u8BEF" });
+    return { token: "user-token", role: user.role || "user" };
   }
-  return { success: true, token: `${user.role}-token-${Date.now()}`, role: user.role };
+  usersData.push({ username, password, role: "user" });
+  await writeFile(usersFile, JSON.stringify(usersData, null, 2), "utf-8");
+  return { token: "user-token", role: "user" };
 });
 
 const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
