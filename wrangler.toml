@@ -1,0 +1,9 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "cloudflare-guestbook"
+compatibility_date = "2026-06-07"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "guestbook-db"
+database_id = "f58ee9b9-40a3-4391-beb4-3843f30028ef"
+migrations_dir = "server/database/migrations"
