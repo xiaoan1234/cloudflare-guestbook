@@ -2175,22 +2175,7 @@ _EwqKvntwSBZfZ63sz4ATt1kR8NUnL3hSXp21WjF5BQ,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {
-  "/index.mjs": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"1b6ee-UUrQhNXNNZDrWVZq6HXCeChNuu8\"",
-    "mtime": "2026-06-07T12:16:09.080Z",
-    "size": 112366,
-    "path": "index.mjs"
-  },
-  "/index.mjs.map": {
-    "type": "application/json",
-    "etag": "\"6cbf3-amkrI4+JCXceAzYvccUtng9wDRM\"",
-    "mtime": "2026-06-07T12:16:09.081Z",
-    "size": 445427,
-    "path": "index.mjs.map"
-  }
-};
+const assets = {};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -2720,6 +2705,7 @@ async function getIslandContext(event) {
 	};
 }
 
+const _lazy_hTaODe = () => Promise.resolve().then(function () { return deleteReply_post$1; });
 const _lazy_w9lz2M = () => Promise.resolve().then(function () { return delete_post$1; });
 const _lazy_Tfm05L = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy_xTG9k6 = () => Promise.resolve().then(function () { return messages_get$1; });
@@ -2729,6 +2715,7 @@ const _lazy_xCo3xo = () => Promise.resolve().then(function () { return renderer;
 
 const handlers = [
   { route: '', handler: _wH6Q1g, lazy: false, middleware: true, method: undefined },
+  { route: '/api/admin/delete-reply', handler: _lazy_hTaODe, lazy: true, middleware: false, method: "post" },
   { route: '/api/admin/delete', handler: _lazy_w9lz2M, lazy: true, middleware: false, method: "post" },
   { route: '/api/login', handler: _lazy_Tfm05L, lazy: true, middleware: false, method: "post" },
   { route: '/api/messages', handler: _lazy_xTG9k6, lazy: true, middleware: false, method: "get" },
@@ -3095,15 +3082,41 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   default: styles
 }, Symbol.toStringTag, { value: 'Module' }));
 
+let messages = [
+  {
+    id: 1,
+    user: "\u7CFB\u7EDF",
+    text: "\u6B22\u8FCE\u4F7F\u7528\u7559\u8A00\u677F\uFF01",
+    replies: [],
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  }
+];
+function getNextMessageId() {
+  return messages.length > 0 ? Math.max(...messages.map((m) => m.id)) + 1 : 1;
+}
+
+const deleteReply_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { messageId, replyId } = body;
+  const msg = messages.find((m) => m.id === messageId);
+  if (!msg) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  const replyIdx = msg.replies.findIndex((r) => r.id === replyId);
+  if (replyIdx === -1) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u56DE\u590D" });
+  msg.replies.splice(replyIdx, 1);
+  return { ok: true };
+});
+
+const deleteReply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: deleteReply_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
 const delete_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { id } = body;
-  const file = new URL("../../../data/messages.json", globalThis._importMeta_.url);
-  const data = JSON.parse(await readFile(file, "utf-8"));
-  const idx = data.findIndex((m) => m.id === id);
+  const idx = messages.findIndex((m) => m.id === id);
   if (idx === -1) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
-  data.splice(idx, 1);
-  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  messages.splice(idx, 1);
   return { ok: true };
 });
 
@@ -3112,19 +3125,42 @@ const delete_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
   default: delete_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
+const USERS_FILE = join(process.cwd(), "data", "users.json");
+async function getUsers() {
+  try {
+    const data = await readFile(USERS_FILE, "utf-8");
+    return JSON.parse(data);
+  } catch {
+    return [{ username: "\u7BA1\u7406\u5458", password: "1314520", role: "admin" }];
+  }
+}
+async function saveUsers(users) {
+  await writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+}
 const login_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { username, password } = body;
-  if (!/^[\u4e00-\u9fa5]+$/.test(username)) {
-    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587" });
+  const { username, password, isRegister } = body;
+  if (!/^[\u4e00-\u9fa5]+[\u4e00-\u9fa50-9]*$/.test(username)) {
+    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587\uFF08\u53EF\u4EE5\u5305\u542B\u6570\u5B57\uFF09" });
   }
   if (!/^\d{6,}$/.test(password)) {
     throw createError({ statusCode: 400, statusMessage: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
   }
-  if (username === "\u7BA1\u7406\u5458" && password === "123456") {
-    return { token: "admin-token", role: "admin" };
+  const users = await getUsers();
+  if (isRegister) {
+    const existingUser = users.find((u) => u.username === username);
+    if (existingUser) {
+      throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5DF2\u5B58\u5728" });
+    }
+    users.push({ username, password, role: "user" });
+    await saveUsers(users);
+    return { success: true, token: `user-token-${Date.now()}`, role: "user", message: "\u6CE8\u518C\u6210\u529F" };
   }
-  return { token: "user-token", role: "user" };
+  const user = users.find((u) => u.username === username);
+  if (!user || user.password !== password) {
+    throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u6216\u5BC6\u7801\u9519\u8BEF" });
+  }
+  return { success: true, token: `${user.role}-token-${Date.now()}`, role: user.role };
 });
 
 const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3133,9 +3169,7 @@ const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProper
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const messages_get = defineEventHandler(async (event) => {
-  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
-  const data = await readFile(file, "utf-8");
-  return JSON.parse(data);
+  return messages;
 });
 
 const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3144,14 +3178,16 @@ const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProp
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const messages_post = defineEventHandler(async (event) => {
-  var _a;
   const body = await readBody(event);
   if (!body || !body.text) throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
-  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
-  const data = JSON.parse(await readFile(file, "utf-8"));
-  const id = (((_a = data[data.length - 1]) == null ? void 0 : _a.id) || 0) + 1;
-  data.push({ id, user: body.user || "\u533F\u540D", text: body.text || "", replies: [] });
-  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  const id = getNextMessageId();
+  messages.push({
+    id,
+    user: body.user || "\u533F\u540D",
+    text: body.text || "",
+    replies: [],
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  });
   return { success: true };
 });
 
@@ -3164,13 +3200,10 @@ const messages_reply_post = defineEventHandler(async (event) => {
   var _a;
   const body = await readBody(event);
   const { id, text, user } = body;
-  const file = new URL("../../data/messages.json", globalThis._importMeta_.url);
-  const data = JSON.parse(await readFile(file, "utf-8"));
-  const msg = data.find((m) => m.id === id);
+  const msg = messages.find((m) => m.id === id);
   if (!msg) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
   const rid = (((_a = msg.replies[msg.replies.length - 1]) == null ? void 0 : _a.id) || 0) + 1;
-  msg.replies.push({ id: rid, user: user || "\u533F\u540D", text: text || "" });
-  await writeFile(file, JSON.stringify(data, null, 2), "utf-8");
+  msg.replies.push({ id: rid, user: user || "\u533F\u540D", text: text || "", createdAt: (/* @__PURE__ */ new Date()).toISOString() });
   return { ok: true };
 });
 

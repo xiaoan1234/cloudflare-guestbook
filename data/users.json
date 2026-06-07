@@ -1,0 +1,12 @@
+[
+  {
+    "username": "管理员",
+    "password": "1314520",
+    "role": "admin"
+  },
+  {
+    "username": "朱彤",
+    "password": "123456",
+    "role": "user"
+  }
+]

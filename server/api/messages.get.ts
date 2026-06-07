@@ -1,9 +1,6 @@
-// 返回所有消息
-// @ts-ignore
-import { readFile } from 'fs/promises'
+﻿// server/api/messages.get.ts
+import { messages } from '../utils/store'
 
 export default defineEventHandler(async (event) => {
-  const file = new URL('../../data/messages.json', import.meta.url)
-  const data = await readFile(file, 'utf-8')
-  return JSON.parse(data)
+  return messages
 })
