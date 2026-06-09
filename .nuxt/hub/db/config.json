@@ -1,9 +1,0 @@
-{
-  "dir": "E:/cangku/cloudflare-guestbook/.data",
-  "hosting": "",
-  "blob": false,
-  "cache": false,
-  "db": false,
-  "kv": false,
-  "database": true
-}
