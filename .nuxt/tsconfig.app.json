@@ -107,7 +107,7 @@
         "./imports"
       ],
       "#app-manifest": [
-        "./manifest/meta/dev.json"
+        "./manifest/meta/9e2b22dd-075a-4958-986e-fb1b21498ff7.json"
       ],
       "#components": [
         "./components"
@@ -182,7 +182,7 @@
     "../node_modules/nuxt/node_modules/dist/runtime/server",
     "../node_modules/nuxt/node_modules/*.*",
     "../node_modules/nuxt/node_modules/dist/*.*",
-    "dev",
+    "../.output",
     "../server"
   ],
   "vueCompilerOptions": {

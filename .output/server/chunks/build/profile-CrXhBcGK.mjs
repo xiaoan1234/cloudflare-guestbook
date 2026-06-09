@@ -1,0 +1,96 @@
+import { defineComponent, ref, mergeProps, useSSRContext } from 'vue';
+import { ssrRenderAttrs, ssrRenderClass, ssrInterpolate, ssrRenderAttr, ssrIncludeBooleanAttr, ssrLooseContain, ssrLooseEqual } from 'vue/server-renderer';
+import { _ as _export_sfc, d as useRouter } from './server.mjs';
+import '../_/nitro.mjs';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'node:fs';
+import 'node:path';
+import 'node:crypto';
+import 'node:async_hooks';
+import 'node:url';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/utils';
+
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "profile",
+  __ssrInlineRender: true,
+  setup(__props) {
+    useRouter();
+    const user = ref("");
+    ref("");
+    const loading = ref(false);
+    const saving = ref(false);
+    const message = ref("");
+    const messageType = ref("success");
+    const profile2 = ref({
+      username: "",
+      age: null,
+      gender: "",
+      email: "",
+      phone: "",
+      bio: ""
+    });
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(`<div${ssrRenderAttrs(mergeProps({ class: "profile-page" }, _attrs))} data-v-06767520><div class="profile-header" data-v-06767520><h1 data-v-06767520>👤 个人中心</h1><div class="header-actions" data-v-06767520><button class="back-btn" data-v-06767520>返回留言板</button><button class="logout-btn" data-v-06767520>退出登录</button></div></div>`);
+      if (loading.value) {
+        _push(`<div class="loading" data-v-06767520>加载中...</div>`);
+      } else {
+        _push(`<div class="profile-content" data-v-06767520>`);
+        if (message.value) {
+          _push(`<div class="${ssrRenderClass(["message", messageType.value])}" data-v-06767520>${ssrInterpolate(message.value)}</div>`);
+        } else {
+          _push(`<!---->`);
+        }
+        _push(`<div class="profile-card" data-v-06767520><div class="avatar-section" data-v-06767520><div class="avatar" data-v-06767520>${ssrInterpolate(user.value.charAt(0).toUpperCase())}</div><div class="user-name" data-v-06767520>${ssrInterpolate(user.value)}</div></div><form class="profile-form" data-v-06767520><div class="form-group" data-v-06767520><label data-v-06767520>用户名</label><input${ssrRenderAttr("value", user.value)} disabled class="disabled-input" data-v-06767520><span class="hint" data-v-06767520>用户名不可修改</span></div><div class="form-group" data-v-06767520><label data-v-06767520>年龄</label><input${ssrRenderAttr("value", profile2.value.age)} type="number" min="0" max="150" placeholder="请输入年龄（可选）" data-v-06767520></div><div class="form-group" data-v-06767520><label data-v-06767520>性别</label><select data-v-06767520><option value="" data-v-06767520${ssrIncludeBooleanAttr(Array.isArray(profile2.value.gender) ? ssrLooseContain(profile2.value.gender, "") : ssrLooseEqual(profile2.value.gender, "")) ? " selected" : ""}>未设置</option><option value="male" data-v-06767520${ssrIncludeBooleanAttr(Array.isArray(profile2.value.gender) ? ssrLooseContain(profile2.value.gender, "male") : ssrLooseEqual(profile2.value.gender, "male")) ? " selected" : ""}>男</option><option value="female" data-v-06767520${ssrIncludeBooleanAttr(Array.isArray(profile2.value.gender) ? ssrLooseContain(profile2.value.gender, "female") : ssrLooseEqual(profile2.value.gender, "female")) ? " selected" : ""}>女</option><option value="other" data-v-06767520${ssrIncludeBooleanAttr(Array.isArray(profile2.value.gender) ? ssrLooseContain(profile2.value.gender, "other") : ssrLooseEqual(profile2.value.gender, "other")) ? " selected" : ""}>其他</option></select></div><div class="form-group" data-v-06767520><label data-v-06767520>邮箱</label><input${ssrRenderAttr("value", profile2.value.email)} type="email" placeholder="请输入邮箱（可选）" data-v-06767520></div><div class="form-group" data-v-06767520><label data-v-06767520>电话</label><input${ssrRenderAttr("value", profile2.value.phone)} type="tel" placeholder="请输入电话号码（可选）" data-v-06767520></div><div class="form-group" data-v-06767520><label data-v-06767520>个人简介</label><textarea rows="4" placeholder="介绍一下自己吧（可选）" data-v-06767520>${ssrInterpolate(profile2.value.bio)}</textarea></div><div class="form-actions" data-v-06767520><button type="submit" class="save-btn"${ssrIncludeBooleanAttr(saving.value) ? " disabled" : ""} data-v-06767520>${ssrInterpolate(saving.value ? "保存中..." : "保存信息")}</button></div></form></div><div class="preview-section" data-v-06767520><h2 data-v-06767520>📋 他人视角预览</h2><div class="preview-card" data-v-06767520><div class="preview-avatar" data-v-06767520>${ssrInterpolate(user.value.charAt(0).toUpperCase())}</div><h3 data-v-06767520>${ssrInterpolate(user.value)}</h3><div class="preview-info" data-v-06767520>`);
+        if (profile2.value.age) {
+          _push(`<p data-v-06767520><strong data-v-06767520>年龄：</strong>${ssrInterpolate(profile2.value.age)}岁</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        if (profile2.value.gender) {
+          _push(`<p data-v-06767520><strong data-v-06767520>性别：</strong>${ssrInterpolate(profile2.value.gender === "male" ? "男" : profile2.value.gender === "female" ? "女" : "其他")}</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        if (profile2.value.email) {
+          _push(`<p data-v-06767520><strong data-v-06767520>邮箱：</strong>${ssrInterpolate(profile2.value.email)}</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        if (profile2.value.phone) {
+          _push(`<p data-v-06767520><strong data-v-06767520>电话：</strong>${ssrInterpolate(profile2.value.phone)}</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        if (profile2.value.bio) {
+          _push(`<p data-v-06767520><strong data-v-06767520>简介：</strong>${ssrInterpolate(profile2.value.bio)}</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        if (!profile2.value.age && !profile2.value.gender && !profile2.value.email && !profile2.value.phone && !profile2.value.bio) {
+          _push(`<p class="empty" data-v-06767520>暂无个人信息</p>`);
+        } else {
+          _push(`<!---->`);
+        }
+        _push(`</div></div></div></div>`);
+      }
+      _push(`</div>`);
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/profile.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+const profile = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-06767520"]]);
+
+export { profile as default };
+//# sourceMappingURL=profile-CrXhBcGK.mjs.map

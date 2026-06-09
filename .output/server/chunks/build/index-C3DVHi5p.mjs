@@ -1,0 +1,51 @@
+import { defineComponent, ref, mergeProps, useSSRContext } from 'vue';
+import { ssrRenderAttrs, ssrInterpolate, ssrRenderAttr, ssrRenderStyle, ssrIncludeBooleanAttr } from 'vue/server-renderer';
+import { _ as _export_sfc, d as useRouter } from './server.mjs';
+import '../_/nitro.mjs';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'node:fs';
+import 'node:path';
+import 'node:crypto';
+import 'node:async_hooks';
+import 'node:url';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/utils';
+
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "index",
+  __ssrInlineRender: true,
+  setup(__props) {
+    useRouter();
+    const isLogin = ref(true);
+    const username = ref("");
+    const password = ref("");
+    const confirmPassword = ref("");
+    const error = ref("");
+    const loading = ref(false);
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(`<div${ssrRenderAttrs(mergeProps({ class: "container" }, _attrs))} data-v-b54a0980><h1 data-v-b54a0980>${ssrInterpolate(isLogin.value ? "登录" : "注册")}</h1><form data-v-b54a0980><div data-v-b54a0980><label data-v-b54a0980>用户名（中文，可包含数字）</label><input${ssrRenderAttr("value", username.value)} placeholder="请输入用户名" data-v-b54a0980></div><div data-v-b54a0980><label data-v-b54a0980>密码（至少6位数字）</label><input${ssrRenderAttr("value", password.value)} type="password" placeholder="请输入密码" data-v-b54a0980></div>`);
+      if (!isLogin.value) {
+        _push(`<div data-v-b54a0980><label data-v-b54a0980>确认密码</label><input${ssrRenderAttr("value", confirmPassword.value)} type="password" placeholder="请再次输入密码" data-v-b54a0980></div>`);
+      } else {
+        _push(`<!---->`);
+      }
+      _push(`<div style="${ssrRenderStyle({ "color": "red" })}" data-v-b54a0980>${ssrInterpolate(error.value)}</div><button type="submit"${ssrIncludeBooleanAttr(loading.value) ? " disabled" : ""} data-v-b54a0980>${ssrInterpolate(loading.value ? isLogin.value ? "登录中..." : "注册中..." : isLogin.value ? "登录" : "注册")}</button></form><div style="${ssrRenderStyle({ "margin-top": "15px" })}" data-v-b54a0980><button type="button" style="${ssrRenderStyle({ "background": "transparent", "color": "#2563eb", "border": "none", "cursor": "pointer" })}" data-v-b54a0980>${ssrInterpolate(isLogin.value ? "没有账号？去注册" : "已有账号？去登录")}</button></div></div>`);
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/index.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+const index = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-b54a0980"]]);
+
+export { index as default };
+//# sourceMappingURL=index-C3DVHi5p.mjs.map

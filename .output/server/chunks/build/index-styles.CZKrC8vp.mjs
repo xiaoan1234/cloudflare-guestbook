@@ -1,0 +1,8 @@
+const index_vue_vue_type_style_index_0_scoped_b54a0980_lang = ".container[data-v-b54a0980]{max-width:400px;margin:80px auto;padding:30px;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 4px 6px #0000001a;font-family:sans-serif}h1[data-v-b54a0980]{text-align:center;color:#1f2937;margin-bottom:30px}div[data-v-b54a0980]{margin-bottom:15px}label[data-v-b54a0980]{display:block;margin-bottom:5px;color:#374151;font-weight:500}input[data-v-b54a0980]{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;box-sizing:border-box}button[type=submit][data-v-b54a0980]{width:100%;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:16px}button[type=submit][data-v-b54a0980]:disabled{background:#93c5fd;cursor:not-allowed}";
+
+const indexStyles_CZKrC8vp = [
+  index_vue_vue_type_style_index_0_scoped_b54a0980_lang
+];
+
+export { indexStyles_CZKrC8vp as default };
+//# sourceMappingURL=index-styles.CZKrC8vp.mjs.map
