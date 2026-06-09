@@ -27,3 +27,5 @@ export default defineNuxtConfig({
     strict: true
   }
 })
+
+
