@@ -17,18 +17,29 @@ let _isCloudflareEnv: boolean | null = null
 function isCloudflareEnvironment(): boolean {
   if (_isCloudflareEnv !== null) return _isCloudflareEnv
 
+  console.log('[db] 🔍 检测Cloudflare环境...')
+
   try {
     // 直接尝试获取Cloudflare环境
     if (typeof useCloudflare === 'function') {
+      console.log('[db] useCloudflare函数可用')
       const cf = useCloudflare()
+      console.log('[db] useCloudflare结果:', cf ? '有返回值' : 'null/undefined')
+      console.log('[db] cf.env:', cf?.env ? '存在' : '不存在')
+      console.log('[db] cf.env.DB:', cf?.env?.DB ? '存在' : '不存在')
+
       if (cf?.env?.DB) {
         _isCloudflareEnv = true
         console.log('[db] ✅ 检测到 Cloudflare D1 数据库')
         return _isCloudflareEnv
       }
+    } else {
+      console.log('[db] useCloudflare函数不可用')
     }
     _isCloudflareEnv = false
-  } catch {
+    console.log('[db] ❌ 未检测到Cloudflare环境')
+  } catch (error) {
+    console.log('[db] ❌ 检测Cloudflare环境时出错:', error)
     _isCloudflareEnv = false
   }
 
@@ -37,18 +48,30 @@ function isCloudflareEnvironment(): boolean {
 
 // 获取数据库实例
 function getDb() {
-  if (_db) return _db
+  if (_db) {
+    console.log('[db] 使用缓存的数据库实例')
+    return _db
+  }
+
+  console.log('[db] 🔍 获取数据库实例...')
 
   try {
+    console.log('[db] 调用useCloudflare()...')
     const cf = useCloudflare()
+    console.log('[db] useCloudflare返回:', cf ? '对象' : 'null')
+
     if (cf?.env?.DB) {
+      console.log('[db] 找到DB绑定，初始化Drizzle...')
       const { drizzle } = require('drizzle-orm/d1')
       _db = drizzle(cf.env.DB)
       console.log('[db] ✅ 成功连接 D1 数据库')
       return _db
+    } else {
+      console.log('[db] ❌ 未找到DB绑定')
+      console.log('[db] cf.env:', JSON.stringify(cf?.env ? Object.keys(cf.env) : 'undefined'))
     }
   } catch (error) {
-    console.error('[db] ❌ 获取数据库绑定失败:', error)
+    console.log('[db] ❌ 获取数据库绑定失败:', error)
   }
 
   throw new Error('无法获取 D1 数据库绑定')
