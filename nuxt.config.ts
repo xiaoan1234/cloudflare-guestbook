@@ -7,9 +7,9 @@ export default defineNuxtConfig({
   // 开启 NuxtHub 并配置连接 D1
   modules: ['@nuxthub/core'],
 
-  hub: {
+  hub: ({
     database: true
-  },
+  } as any),
 
   // 自动导入配置
   components: [

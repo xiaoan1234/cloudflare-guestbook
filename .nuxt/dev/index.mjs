@@ -3131,11 +3131,22 @@ function isCloudflareEnvironment() {
   if (_isCloudflareEnv !== null) return _isCloudflareEnv;
   try {
     if (typeof useCloudflare === "function") {
-      const cf = useCloudflare();
-      _isCloudflareEnv = ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) !== void 0;
-    } else {
-      _isCloudflareEnv = false;
+      try {
+        const cf = useCloudflare();
+        if ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) {
+          _isCloudflareEnv = true;
+          return _isCloudflareEnv;
+        }
+      } catch {
+      }
     }
+    if (typeof globalThis !== "undefined") {
+      if (globalThis.__cf_database_id || globalThis.__NUXT_HUB_DATABASE) {
+        _isCloudflareEnv = true;
+        return _isCloudflareEnv;
+      }
+    }
+    _isCloudflareEnv = false;
   } catch {
     _isCloudflareEnv = false;
   }
@@ -3166,9 +3177,11 @@ async function findUser(username) {
       const { users } = require("../database/schema");
       const { eq } = require("drizzle-orm");
       const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u67E5\u8BE2\u7528\u6237:", username, result[0] ? "\u627E\u5230" : "\u672A\u627E\u5230");
       return result[0] || null;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25:", error);
+      throw error;
     }
   }
   const user = memoryUsers[username];
@@ -3180,9 +3193,11 @@ async function createUser(username, password, role = "user") {
       const db = getDb();
       const { users } = require("../database/schema");
       const result = await db.insert(users).values({ username, password, role }).returning();
+      console.log("[db] \u5728D1\u6570\u636E\u5E93\u521B\u5EFA\u7528\u6237:", username);
       return result[0];
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25:", error);
+      throw error;
     }
   }
   memoryUsers[username] = { password, role };
@@ -3195,9 +3210,11 @@ async function getUserProfile(username) {
       const { userProfiles } = require("../database/schema");
       const { eq } = require("drizzle-orm");
       const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1);
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u67E5\u8BE2\u7528\u6237\u4E2A\u4EBA\u4FE1\u606F:", username);
       return result[0] || null;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u67E5\u8BE2\u7528\u6237\u4E2A\u4EBA\u4FE1\u606F\u5931\u8D25:", error);
+      throw error;
     }
   }
   return memoryUserProfiles[username] || null;
@@ -3212,13 +3229,16 @@ async function upsertUserProfile(username, profile) {
       const existing = await getUserProfile(username);
       if (existing) {
         const result = await db.update(userProfiles).set({ ...profile, updatedAt: /* @__PURE__ */ new Date() }).where(eq(userProfiles.username, username)).returning();
+        console.log("[db] \u5728D1\u6570\u636E\u5E93\u66F4\u65B0\u7528\u6237\u4E2A\u4EBA\u4FE1\u606F:", username);
         return result[0];
       } else {
         const result = await db.insert(userProfiles).values({ username, ...profile }).returning();
+        console.log("[db] \u5728D1\u6570\u636E\u5E93\u521B\u5EFA\u7528\u6237\u4E2A\u4EBA\u4FE1\u606F:", username);
         return result[0];
       }
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u64CD\u4F5C\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u64CD\u4F5C\u7528\u6237\u4E2A\u4EBA\u4FE1\u606F\u5931\u8D25:", error);
+      throw error;
     }
   }
   memoryUserProfiles[username] = {
@@ -3242,9 +3262,11 @@ async function getAllMessages() {
           return { ...msg, replies: msgReplies };
         })
       );
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u83B7\u53D6\u7559\u8A00:", messagesWithReplies.length, "\u6761");
       return messagesWithReplies;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u67E5\u8BE2\u7559\u8A00\u5931\u8D25:", error);
+      throw error;
     }
   }
   return memoryMessages.map((msg) => ({
@@ -3258,9 +3280,11 @@ async function createMessage(user, text) {
       const db = getDb();
       const { messages } = require("../database/schema");
       const result = await db.insert(messages).values({ user, text, views: 0 }).returning();
+      console.log("[db] \u5728D1\u6570\u636E\u5E93\u521B\u5EFA\u7559\u8A00:", user);
       return result[0];
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u63D2\u5165\u7559\u8A00\u5931\u8D25:", error);
+      throw error;
     }
   }
   const id = getNextMessageId();
@@ -3283,9 +3307,11 @@ async function incrementMessageViews(messageId) {
       const msg2 = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1);
       if (!msg2[0]) return false;
       await db.update(messages).set({ views: (msg2[0].views || 0) + 1 }).where(eq(messages.id, messageId));
+      console.log("[db] \u5728D1\u6570\u636E\u5E93\u589E\u52A0\u7559\u8A00\u6D4F\u89C8\u91CF:", messageId);
       return true;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u66F4\u65B0\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u66F4\u65B0\u6D4F\u89C8\u91CF\u5931\u8D25:", error);
+      throw error;
     }
   }
   const msg = memoryMessages.find((m) => m.id === messageId);
@@ -3301,9 +3327,11 @@ async function getTopMessages(limit = 10) {
       const db = getDb();
       const { messages } = require("../database/schema");
       const result = await db.select().from(messages).orderBy(messages.views).limit(limit);
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u83B7\u53D6\u70ED\u95E8\u7559\u8A00:", result.length, "\u6761");
       return result.reverse();
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u67E5\u8BE2\u70ED\u95E8\u7559\u8A00\u5931\u8D25:", error);
+      throw error;
     }
   }
   return [...memoryMessages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, limit);
@@ -3316,9 +3344,11 @@ async function deleteMessage(messageId) {
       const { eq } = require("drizzle-orm");
       await db.delete(replies).where(eq(replies.messageId, messageId));
       await db.delete(messages).where(eq(messages.id, messageId));
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u5220\u9664\u7559\u8A00:", messageId);
       return true;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u5220\u9664\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u5220\u9664\u7559\u8A00\u5931\u8D25:", error);
+      throw error;
     }
   }
   memoryMessages = memoryMessages.filter((m) => m.id !== messageId);
@@ -3331,9 +3361,11 @@ async function createReply(messageId, user, text) {
       const db = getDb();
       const { replies } = require("../database/schema");
       const result = await db.insert(replies).values({ messageId, user, text }).returning();
+      console.log("[db] \u5728D1\u6570\u636E\u5E93\u521B\u5EFA\u56DE\u590D:", user, "->", messageId);
       return result[0];
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u63D2\u5165\u56DE\u590D\u5931\u8D25:", error);
+      throw error;
     }
   }
   const id = memoryReplies.length > 0 ? Math.max(...memoryReplies.map((r) => r.id || 0)) + 1 : 1;
@@ -3354,9 +3386,11 @@ async function deleteReply(messageId, replyId) {
       const { replies } = require("../database/schema");
       const { eq } = require("drizzle-orm");
       await db.delete(replies).where(eq(replies.id, replyId));
+      console.log("[db] \u4ECED1\u6570\u636E\u5E93\u5220\u9664\u56DE\u590D:", replyId);
       return true;
     } catch (error) {
-      console.warn("[db] \u6570\u636E\u5E93\u5220\u9664\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+      console.error("[db] D1\u6570\u636E\u5E93\u5220\u9664\u56DE\u590D\u5931\u8D25:", error);
+      throw error;
     }
   }
   memoryReplies = memoryReplies.filter((r) => !(r.messageId === messageId && r.id === replyId));
