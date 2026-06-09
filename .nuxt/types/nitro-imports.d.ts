@@ -53,7 +53,6 @@ declare global {
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
   const getAllMessages: typeof import('../../server/utils/db').getAllMessages
   const getCookie: typeof import('../../node_modules/h3').getCookie
-  const getDb: typeof import('../../server/utils/db').getDb
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
   const getMethod: typeof import('../../node_modules/h3').getMethod
@@ -163,5 +162,5 @@ export { defineTask, runTask } from 'nitropack/runtime/internal/task';
 export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils';
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from 'E:/cangku/cloudflare-guestbook/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from 'E:/cangku/cloudflare-guestbook/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
-export { getDb, findUser, createUser, getUserProfile, upsertUserProfile, getAllMessages, createMessage, incrementMessageViews, getTopMessages, deleteMessage, createReply, deleteReply, initializeAdmin } from 'E:/cangku/cloudflare-guestbook/server/utils/db';
+export { findUser, createUser, getUserProfile, upsertUserProfile, getAllMessages, createMessage, incrementMessageViews, getTopMessages, deleteMessage, createReply, deleteReply, initializeAdmin } from 'E:/cangku/cloudflare-guestbook/server/utils/db';
 export { users, messages, getNextMessageId } from 'E:/cangku/cloudflare-guestbook/server/utils/store';

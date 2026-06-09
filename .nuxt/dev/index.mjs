@@ -7,9 +7,6 @@ import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent
 import { escapeHtml } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@vue/shared/dist/shared.cjs.js';
 import viteNodeEntry_mjs from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
-import { drizzle } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/d1/index.js';
-import { sqliteTable, integer, text } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/sqlite-core/index.js';
-import { eq } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file://E:/cangku/cloudflare-guestbook/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file://E:/cangku/cloudflare-guestbook/node_modules/ufo/dist/index.mjs';
 import destr, { destr as destr$1 } from 'file://E:/cangku/cloudflare-guestbook/node_modules/destr/dist/index.mjs';
@@ -2189,22 +2186,7 @@ _ow8bWGpyFQuYjC3el50V55np35BMAcbcqi2trqYSFww,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {
-  "/index.mjs": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"1e8ee-EZUw6AZMYrf6W7MHQVzpakCcIbk\"",
-    "mtime": "2026-06-09T05:33:11.317Z",
-    "size": 125166,
-    "path": "index.mjs"
-  },
-  "/index.mjs.map": {
-    "type": "application/json",
-    "etag": "\"76e7e-V8Fa7MSKO3yojjAej4E53yrBzBU\"",
-    "mtime": "2026-06-09T05:33:11.317Z",
-    "size": 487038,
-    "path": "index.mjs.map"
-  }
-};
+const assets = {};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -3121,148 +3103,263 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   default: styles
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  role: text("role").notNull().default("user"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
-});
-const userProfiles = sqliteTable("user_profiles", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  username: text("username").notNull().unique(),
-  age: integer("age"),
-  gender: text("gender"),
-  email: text("email"),
-  phone: text("phone"),
-  bio: text("bio"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
-});
-const messages$1 = sqliteTable("messages", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  user: text("user").notNull(),
-  text: text("text").notNull(),
-  views: integer("views").notNull().default(0),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
-});
-const replies = sqliteTable("replies", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  messageId: integer("message_id").notNull(),
-  user: text("user").notNull(),
-  text: text("text").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
-});
+const users = {
+  "\u7BA1\u7406\u5458": { password: "1314520", role: "admin" }
+};
+let messages = [
+  {
+    id: 1,
+    user: "\u7CFB\u7EDF",
+    text: "\u6B22\u8FCE\u4F7F\u7528\u7559\u8A00\u677F\uFF01",
+    replies: [],
+    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+    views: 0
+  }
+];
+function getNextMessageId() {
+  return messages.length > 0 ? Math.max(...messages.map((m) => m.id)) + 1 : 1;
+}
 
+let memoryUsers = { ...users };
+let memoryUserProfiles = {};
+let memoryMessages = [...messages];
+let memoryReplies = [];
 let _db = null;
-function getDb() {
+let _isCloudflareEnv = null;
+function isCloudflareEnvironment() {
   var _a;
-  if (_db) return _db;
+  if (_isCloudflareEnv !== null) return _isCloudflareEnv;
   try {
     if (typeof useCloudflare === "function") {
       const cf = useCloudflare();
-      if ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) {
-        _db = drizzle(cf.env.DB);
-        return _db;
-      }
+      _isCloudflareEnv = ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) !== void 0;
+    } else {
+      _isCloudflareEnv = false;
     }
-    throw new Error("\u6570\u636E\u5E93\u8FDE\u63A5\u4E0D\u53EF\u7528\u3002\u8BF7\u786E\u4FDD\u5728 Nitro API \u8DEF\u7531\u4E2D\u4F7F\u7528\u6B64\u51FD\u6570\u3002");
+  } catch {
+    _isCloudflareEnv = false;
+  }
+  return _isCloudflareEnv;
+}
+function getDb() {
+  var _a;
+  if (_db) return _db;
+  if (!isCloudflareEnvironment()) {
+    throw new Error("\u6570\u636E\u5E93\u4E0D\u53EF\u7528\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+  }
+  try {
+    const cf = useCloudflare();
+    if ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) {
+      const { drizzle } = require("drizzle-orm/d1");
+      _db = drizzle(cf.env.DB);
+      return _db;
+    }
   } catch (error) {
     console.error("[db] \u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25:", error);
-    throw error;
   }
+  throw new Error("\u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25");
 }
 async function findUser(username) {
-  const db = getDb();
-  const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
-  return result[0] || null;
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { users } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+      return result[0] || null;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  const user = memoryUsers[username];
+  return user ? { username, ...user } : null;
 }
 async function createUser(username, password, role = "user") {
-  const db = getDb();
-  const result = await db.insert(users).values({
-    username,
-    password,
-    role
-  }).returning();
-  return result[0];
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { users } = require("../database/schema");
+      const result = await db.insert(users).values({ username, password, role }).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  memoryUsers[username] = { password, role };
+  return { username, password, role };
 }
 async function getUserProfile(username) {
-  const db = getDb();
-  const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1);
-  return result[0] || null;
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { userProfiles } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1);
+      return result[0] || null;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  return memoryUserProfiles[username] || null;
 }
 async function upsertUserProfile(username, profile) {
-  const db = getDb();
-  const existing = await getUserProfile(username);
-  if (existing) {
-    const result = await db.update(userProfiles).set({
-      ...profile,
-      updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq(userProfiles.username, username)).returning();
-    return result[0];
-  } else {
-    const result = await db.insert(userProfiles).values({
-      username,
-      ...profile
-    }).returning();
-    return result[0];
+  var _a;
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { userProfiles } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      const existing = await getUserProfile(username);
+      if (existing) {
+        const result = await db.update(userProfiles).set({ ...profile, updatedAt: /* @__PURE__ */ new Date() }).where(eq(userProfiles.username, username)).returning();
+        return result[0];
+      } else {
+        const result = await db.insert(userProfiles).values({ username, ...profile }).returning();
+        return result[0];
+      }
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u64CD\u4F5C\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
   }
+  memoryUserProfiles[username] = {
+    username,
+    ...profile,
+    createdAt: ((_a = memoryUserProfiles[username]) == null ? void 0 : _a.createdAt) || (/* @__PURE__ */ new Date()).toISOString(),
+    updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  return memoryUserProfiles[username];
 }
 async function getAllMessages() {
-  const db = getDb();
-  const allMessages = await db.select().from(messages$1).orderBy(messages$1.createdAt);
-  const messagesWithReplies = await Promise.all(
-    allMessages.map(async (msg) => {
-      const msgReplies = await db.select().from(replies).where(eq(replies.messageId, msg.id)).orderBy(replies.createdAt);
-      return {
-        ...msg,
-        replies: msgReplies
-      };
-    })
-  );
-  return messagesWithReplies;
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { messages, replies } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      const allMessages = await db.select().from(messages).orderBy(messages.createdAt);
+      const messagesWithReplies = await Promise.all(
+        allMessages.map(async (msg) => {
+          const msgReplies = await db.select().from(replies).where(eq(replies.messageId, msg.id)).orderBy(replies.createdAt);
+          return { ...msg, replies: msgReplies };
+        })
+      );
+      return messagesWithReplies;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  return memoryMessages.map((msg) => ({
+    ...msg,
+    replies: memoryReplies.filter((r) => r.messageId === msg.id)
+  }));
 }
 async function createMessage(user, text) {
-  const db = getDb();
-  const result = await db.insert(messages$1).values({
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { messages } = require("../database/schema");
+      const result = await db.insert(messages).values({ user, text, views: 0 }).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  const id = getNextMessageId();
+  const message = {
+    id,
     user,
     text,
-    views: 0
-  }).returning();
-  return result[0];
+    views: 0,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  memoryMessages.push(message);
+  return message;
 }
 async function incrementMessageViews(messageId) {
-  const db = getDb();
-  const msg = await db.select().from(messages$1).where(eq(messages$1.id, messageId)).limit(1);
-  if (!msg[0]) return false;
-  await db.update(messages$1).set({
-    views: (msg[0].views || 0) + 1
-  }).where(eq(messages$1.id, messageId));
-  return true;
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { messages } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      const msg2 = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1);
+      if (!msg2[0]) return false;
+      await db.update(messages).set({ views: (msg2[0].views || 0) + 1 }).where(eq(messages.id, messageId));
+      return true;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u66F4\u65B0\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  const msg = memoryMessages.find((m) => m.id === messageId);
+  if (msg) {
+    msg.views = (msg.views || 0) + 1;
+    return true;
+  }
+  return false;
 }
 async function getTopMessages(limit = 10) {
-  const db = getDb();
-  const result = await db.select().from(messages$1).orderBy(messages$1.views).limit(limit);
-  return result.reverse();
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { messages } = require("../database/schema");
+      const result = await db.select().from(messages).orderBy(messages.views).limit(limit);
+      return result.reverse();
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u67E5\u8BE2\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  return [...memoryMessages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, limit);
 }
 async function deleteMessage(messageId) {
-  const db = getDb();
-  await db.delete(replies).where(eq(replies.messageId, messageId));
-  await db.delete(messages$1).where(eq(messages$1.id, messageId));
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { messages, replies } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      await db.delete(replies).where(eq(replies.messageId, messageId));
+      await db.delete(messages).where(eq(messages.id, messageId));
+      return true;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u5220\u9664\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  memoryMessages = memoryMessages.filter((m) => m.id !== messageId);
+  memoryReplies = memoryReplies.filter((r) => r.messageId !== messageId);
   return true;
 }
 async function createReply(messageId, user, text) {
-  const db = getDb();
-  const result = await db.insert(replies).values({
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { replies } = require("../database/schema");
+      const result = await db.insert(replies).values({ messageId, user, text }).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u63D2\u5165\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  const id = memoryReplies.length > 0 ? Math.max(...memoryReplies.map((r) => r.id || 0)) + 1 : 1;
+  const reply = {
+    id,
     messageId,
     user,
-    text
-  }).returning();
-  return result[0];
+    text,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  memoryReplies.push(reply);
+  return reply;
 }
 async function deleteReply(messageId, replyId) {
-  const db = getDb();
-  await db.delete(replies).where(eq(replies.id, replyId));
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb();
+      const { replies } = require("../database/schema");
+      const { eq } = require("drizzle-orm");
+      await db.delete(replies).where(eq(replies.id, replyId));
+      return true;
+    } catch (error) {
+      console.warn("[db] \u6570\u636E\u5E93\u5220\u9664\u5931\u8D25\uFF0C\u4F7F\u7528\u5185\u5B58\u5B58\u50A8");
+    }
+  }
+  memoryReplies = memoryReplies.filter((r) => !(r.messageId === messageId && r.id === replyId));
   return true;
 }
 
@@ -3316,12 +3413,6 @@ const login_post = defineEventHandler(async (event) => {
   }
   if (!/^\d{6,}$/.test(password)) {
     throw createError({ statusCode: 400, message: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
-  }
-  try {
-    getDb();
-  } catch (error) {
-    console.error("[login] \u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25:", error);
-    throw createError({ statusCode: 500, message: "\u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25\u3002\u8BF7\u786E\u4FDD\u5DF2\u90E8\u7F72\u5230 Cloudflare \u6216\u914D\u7F6E\u4E86\u672C\u5730 D1\u3002" });
   }
   const existingUser = await findUser(username);
   if (isRegister) {
@@ -3388,17 +3479,6 @@ const messages_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePro
   __proto__: null,
   default: messages_post
 }, Symbol.toStringTag, { value: 'Module' }));
-
-let messages = [
-  {
-    id: 1,
-    user: "\u7CFB\u7EDF",
-    text: "\u6B22\u8FCE\u4F7F\u7528\u7559\u8A00\u677F\uFF01",
-    replies: [],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-    views: 0
-  }
-];
 
 const messages_reply_post = defineEventHandler(async (event) => {
   var _a;

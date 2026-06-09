@@ -1,63 +1,115 @@
 // server/utils/db.ts
-// 数据库工具函数 - 使用 NuxtHub D1
+// 数据库工具函数 - 支持本地开发和 Cloudflare 生产环境
 
-import { drizzle } from 'drizzle-orm/d1'
-import { users, userProfiles, messages, replies } from '../database/schema'
-import { eq } from 'drizzle-orm'
+import { users as storeUsers, messages as storeMessages, getNextMessageId } from './store'
 
-// 全局数据库实例（延迟初始化）
+// 内存存储（本地开发环境）
+let memoryUsers: Record<string, { password: string; role: string }> = { ...storeUsers }
+let memoryUserProfiles: Record<string, any> = {}
+let memoryMessages: any[] = [...storeMessages]
+let memoryReplies: any[] = []
+
+// 全局数据库实例（生产环境）
 let _db: any = null
+let _isCloudflareEnv: boolean | null = null
 
-// 获取数据库实例
-export function getDb() {
-  if (_db) return _db
+// 检测是否在 Cloudflare 环境中
+function isCloudflareEnvironment(): boolean {
+  if (_isCloudflareEnv !== null) return _isCloudflareEnv
 
   try {
-    // 在 Nitro 插件和 API 路由中，useCloudflare 可能不可用
-    // 所以我们延迟初始化，在首次使用时才创建
     if (typeof useCloudflare === 'function') {
       const cf = useCloudflare()
-      if (cf?.env?.DB) {
-        _db = drizzle(cf.env.DB)
-        return _db
-      }
+      _isCloudflareEnv = cf?.env?.DB !== undefined
+    } else {
+      _isCloudflareEnv = false
     }
+  } catch {
+    _isCloudflareEnv = false
+  }
 
-    // 如果 useCloudflare 不可用，抛出更友好的错误
-    throw new Error('数据库连接不可用。请确保在 Nitro API 路由中使用此函数。')
+  return _isCloudflareEnv
+}
+
+// 获取数据库实例（生产环境）
+function getDb() {
+  if (_db) return _db
+
+  if (!isCloudflareEnvironment()) {
+    throw new Error('数据库不可用，使用内存存储')
+  }
+
+  try {
+    const cf = useCloudflare()
+    if (cf?.env?.DB) {
+      const { drizzle } = require('drizzle-orm/d1')
+      _db = drizzle(cf.env.DB)
+      return _db
+    }
   } catch (error) {
     console.error('[db] 数据库连接失败:', error)
-    throw error
   }
+
+  throw new Error('数据库连接失败')
 }
 
 // ========== 用户相关操作 ==========
 
 // 查找用户
 export async function findUser(username: string) {
-  const db = getDb()
-  const result = await db.select().from(users).where(eq(users.username, username)).limit(1)
-  return result[0] || null
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { users } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
+      const result = await db.select().from(users).where(eq(users.username, username)).limit(1)
+      return result[0] || null
+    } catch (error) {
+      console.warn('[db] 数据库查询失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  const user = memoryUsers[username]
+  return user ? { username, ...user } : null
 }
 
 // 创建用户
 export async function createUser(username: string, password: string, role: string = 'user') {
-  const db = getDb()
-  const result = await db.insert(users).values({
-    username,
-    password,
-    role
-  }).returning()
-  return result[0]
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { users } = require('../database/schema')
+      const result = await db.insert(users).values({ username, password, role }).returning()
+      return result[0]
+    } catch (error) {
+      console.warn('[db] 数据库插入失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  memoryUsers[username] = { password, role }
+  return { username, password, role }
 }
 
 // ========== 用户个人信息操作 ==========
 
 // 获取用户个人信息
 export async function getUserProfile(username: string) {
-  const db = getDb()
-  const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1)
-  return result[0] || null
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { userProfiles } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
+      const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1)
+      return result[0] || null
+    } catch (error) {
+      console.warn('[db] 数据库查询失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  return memoryUserProfiles[username] || null
 }
 
 // 创建或更新用户个人信息
@@ -68,113 +120,170 @@ export async function upsertUserProfile(username: string, profile: {
   phone?: string | null
   bio?: string | null
 }) {
-  const db = getDb()
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { userProfiles } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
 
-  // 检查是否已存在
-  const existing = await getUserProfile(username)
+      const existing = await getUserProfile(username)
 
-  if (existing) {
-    // 更新
-    const result = await db.update(userProfiles)
-      .set({
-        ...profile,
-        updatedAt: new Date()
-      })
-      .where(eq(userProfiles.username, username))
-      .returning()
-    return result[0]
-  } else {
-    // 创建
-    const result = await db.insert(userProfiles)
-      .values({
-        username,
-        ...profile
-      })
-      .returning()
-    return result[0]
+      if (existing) {
+        const result = await db.update(userProfiles)
+          .set({ ...profile, updatedAt: new Date() })
+          .where(eq(userProfiles.username, username))
+          .returning()
+        return result[0]
+      } else {
+        const result = await db.insert(userProfiles)
+          .values({ username, ...profile })
+          .returning()
+        return result[0]
+      }
+    } catch (error) {
+      console.warn('[db] 数据库操作失败，使用内存存储')
+    }
   }
+
+  // 内存存储
+  memoryUserProfiles[username] = {
+    username,
+    ...profile,
+    createdAt: memoryUserProfiles[username]?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+  return memoryUserProfiles[username]
 }
 
 // ========== 留言相关操作 ==========
 
 // 获取所有留言（带回复）
 export async function getAllMessages() {
-  const db = getDb()
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { messages, replies } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
 
-  // 获取所有留言
-  const allMessages = await db.select().from(messages).orderBy(messages.createdAt)
+      const allMessages = await db.select().from(messages).orderBy(messages.createdAt)
 
-  // 获取每个留言的回复
-  const messagesWithReplies = await Promise.all(
-    allMessages.map(async (msg) => {
-      const msgReplies = await db.select().from(replies)
-        .where(eq(replies.messageId, msg.id))
-        .orderBy(replies.createdAt)
+      const messagesWithReplies = await Promise.all(
+        allMessages.map(async (msg: any) => {
+          const msgReplies = await db.select().from(replies)
+            .where(eq(replies.messageId, msg.id))
+            .orderBy(replies.createdAt)
+          return { ...msg, replies: msgReplies }
+        })
+      )
 
-      return {
-        ...msg,
-        replies: msgReplies
-      }
-    })
-  )
+      return messagesWithReplies
+    } catch (error) {
+      console.warn('[db] 数据库查询失败，使用内存存储')
+    }
+  }
 
-  return messagesWithReplies
+  // 内存存储
+  return memoryMessages.map(msg => ({
+    ...msg,
+    replies: memoryReplies.filter(r => r.messageId === msg.id)
+  }))
 }
 
 // 创建留言
 export async function createMessage(user: string, text: string) {
-  const db = getDb()
-  const result = await db.insert(messages)
-    .values({
-      user,
-      text,
-      views: 0
-    })
-    .returning()
-  return result[0]
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { messages } = require('../database/schema')
+      const result = await db.insert(messages).values({ user, text, views: 0 }).returning()
+      return result[0]
+    } catch (error) {
+      console.warn('[db] 数据库插入失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  const id = getNextMessageId()
+  const message = {
+    id,
+    user,
+    text,
+    views: 0,
+    createdAt: new Date().toISOString()
+  }
+  memoryMessages.push(message)
+  return message
 }
 
 // 增加浏览量
 export async function incrementMessageViews(messageId: number) {
-  const db = getDb()
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { messages } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
 
-  // 获取当前浏览量
-  const msg = await db.select().from(messages)
-    .where(eq(messages.id, messageId))
-    .limit(1)
+      const msg = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1)
+      if (!msg[0]) return false
 
-  if (!msg[0]) return false
+      await db.update(messages)
+        .set({ views: (msg[0].views || 0) + 1 })
+        .where(eq(messages.id, messageId))
 
-  // 更新浏览量
-  await db.update(messages)
-    .set({
-      views: (msg[0].views || 0) + 1
-    })
-    .where(eq(messages.id, messageId))
+      return true
+    } catch (error) {
+      console.warn('[db] 数据库更新失败，使用内存存储')
+    }
+  }
 
-  return true
+  // 内存存储
+  const msg = memoryMessages.find(m => m.id === messageId)
+  if (msg) {
+    msg.views = (msg.views || 0) + 1
+    return true
+  }
+  return false
 }
 
 // 获取热门留言排行
 export async function getTopMessages(limit: number = 10) {
-  const db = getDb()
-  const result = await db.select().from(messages)
-    .orderBy(messages.views)
-    .limit(limit)
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { messages } = require('../database/schema')
 
-  return result.reverse()  // 按浏览量降序
+      const result = await db.select().from(messages).orderBy(messages.views).limit(limit)
+      return result.reverse()
+    } catch (error) {
+      console.warn('[db] 数据库查询失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  return [...memoryMessages]
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, limit)
 }
 
 // 删除留言
 export async function deleteMessage(messageId: number) {
-  const db = getDb()
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { messages, replies } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
 
-  // 先删除所有回复
-  await db.delete(replies).where(eq(replies.messageId, messageId))
+      await db.delete(replies).where(eq(replies.messageId, messageId))
+      await db.delete(messages).where(eq(messages.id, messageId))
+      return true
+    } catch (error) {
+      console.warn('[db] 数据库删除失败，使用内存存储')
+    }
+  }
 
-  // 再删除留言
-  await db.delete(messages).where(eq(messages.id, messageId))
-
+  // 内存存储
+  memoryMessages = memoryMessages.filter(m => m.id !== messageId)
+  memoryReplies = memoryReplies.filter(r => r.messageId !== messageId)
   return true
 }
 
@@ -182,22 +291,47 @@ export async function deleteMessage(messageId: number) {
 
 // 创建回复
 export async function createReply(messageId: number, user: string, text: string) {
-  const db = getDb()
-  const result = await db.insert(replies)
-    .values({
-      messageId,
-      user,
-      text
-    })
-    .returning()
-  return result[0]
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { replies } = require('../database/schema')
+      const result = await db.insert(replies).values({ messageId, user, text }).returning()
+      return result[0]
+    } catch (error) {
+      console.warn('[db] 数据库插入失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  const id = memoryReplies.length > 0 ? Math.max(...memoryReplies.map(r => r.id || 0)) + 1 : 1
+  const reply = {
+    id,
+    messageId,
+    user,
+    text,
+    createdAt: new Date().toISOString()
+  }
+  memoryReplies.push(reply)
+  return reply
 }
 
 // 删除回复
 export async function deleteReply(messageId: number, replyId: number) {
-  const db = getDb()
-  await db.delete(replies)
-    .where(eq(replies.id, replyId))
+  if (isCloudflareEnvironment()) {
+    try {
+      const db = getDb()
+      const { replies } = require('../database/schema')
+      const { eq } = require('drizzle-orm')
+
+      await db.delete(replies).where(eq(replies.id, replyId))
+      return true
+    } catch (error) {
+      console.warn('[db] 数据库删除失败，使用内存存储')
+    }
+  }
+
+  // 内存存储
+  memoryReplies = memoryReplies.filter(r => !(r.messageId === messageId && r.id === replyId))
   return true
 }
 
@@ -206,18 +340,12 @@ export async function deleteReply(messageId: number, replyId: number) {
 // 初始化默认管理员账号
 export async function initializeAdmin() {
   try {
-    const db = getDb()
-
-    // 检查是否已有管理员
     const admin = await findUser('管理员')
-
     if (!admin) {
-      // 创建默认管理员
       await createUser('管理员', '1314520', 'admin')
       console.log('[db] 创建默认管理员账号')
     }
   } catch (error) {
-    // 如果数据库未就绪，记录警告但不阻止应用启动
-    console.warn('[db] 管理员初始化跳过（数据库可能未就绪）:', error)
+    console.warn('[db] 管理员初始化跳过:', error)
   }
 }

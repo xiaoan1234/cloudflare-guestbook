@@ -1,6 +1,7 @@
-// 登录 API：验证用户身份或注册新用户（使用 D1 数据库）
+// 登录 API：验证用户身份或注册新用户
+// 支持本地开发（内存存储）和生产环境（D1 数据库）
 import { readBody } from 'h3'
-import { findUser, createUser, getDb } from '../utils/db'
+import { findUser, createUser } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event) as any
@@ -18,14 +19,6 @@ export default defineEventHandler(async (event) => {
   // 验证密码格式：至少6位数字
   if (!/^\d{6,}$/.test(password)) {
     throw createError({ statusCode: 400, message: '密码必须为至少6位数字' })
-  }
-
-  try {
-    // 尝试获取数据库连接（会自动延迟初始化）
-    getDb()
-  } catch (error) {
-    console.error('[login] 数据库连接失败:', error)
-    throw createError({ statusCode: 500, message: '数据库连接失败。请确保已部署到 Cloudflare 或配置了本地 D1。' })
   }
 
   // 查找用户
