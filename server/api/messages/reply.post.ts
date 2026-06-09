@@ -1,11 +1,11 @@
-// server/api/admin/delete.post.ts
-// 删除留言（使用 D1 数据库）
+// server/api/messages/reply.post.ts
+// 创建回复（使用 D1 数据库）
 import { readBody } from 'h3'
-import { deleteMessage, getAllMessages } from '../../utils/db'
+import { createReply, getAllMessages } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event) as any
-  const { id } = body
+  const { id, text, user } = body
 
   // 验证留言是否存在
   const messages = await getAllMessages()
@@ -15,8 +15,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: '未找到留言' })
   }
 
-  // 删除留言
-  await deleteMessage(id)
+  // 创建回复
+  const reply = await createReply(id, user || '匿名', text || '')
 
-  return { success: true }
+  return { success: true, reply }
 })

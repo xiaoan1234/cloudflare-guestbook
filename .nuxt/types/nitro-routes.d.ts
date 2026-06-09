@@ -19,6 +19,19 @@ declare module "nitropack/types" {
     '/api/messages.reply': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages.reply.post').default>>>>
     }
+    '/api/messages/reply': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/reply.post').default>>>>
+    }
+    '/api/messages/top': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/top.get').default>>>>
+    }
+    '/api/messages/view': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/view.post').default>>>>
+    }
+    '/api/user/profile': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/user/profile.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/user/profile.post').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

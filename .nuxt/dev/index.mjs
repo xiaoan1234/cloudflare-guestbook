@@ -7,7 +7,9 @@ import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent
 import { escapeHtml } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@vue/shared/dist/shared.cjs.js';
 import viteNodeEntry_mjs from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { drizzle } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/d1/index.js';
+import { sqliteTable, integer, text } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/sqlite-core/index.js';
+import { eq } from 'file://E:/cangku/cloudflare-guestbook/node_modules/drizzle-orm/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file://E:/cangku/cloudflare-guestbook/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file://E:/cangku/cloudflare-guestbook/node_modules/ufo/dist/index.mjs';
 import destr, { destr as destr$1 } from 'file://E:/cangku/cloudflare-guestbook/node_modules/destr/dist/index.mjs';
@@ -28,6 +30,7 @@ import { digest, hash as hash$1 } from 'file://E:/cangku/cloudflare-guestbook/no
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { getContext } from 'file://E:/cangku/cloudflare-guestbook/node_modules/unctx/dist/index.mjs';
 import { toRouteMatcher, createRouter } from 'file://E:/cangku/cloudflare-guestbook/node_modules/radix3/dist/index.mjs';
+import { readFile } from 'node:fs/promises';
 import consola, { consola as consola$1 } from 'file://E:/cangku/cloudflare-guestbook/node_modules/consola/dist/index.mjs';
 import { ErrorParser } from 'file://E:/cangku/cloudflare-guestbook/node_modules/youch-core/build/index.js';
 import { Youch } from 'file://E:/cangku/cloudflare-guestbook/node_modules/youch/build/index.js';
@@ -2169,25 +2172,36 @@ function onConsoleLog(callback) {
 	consola$1.wrapConsole();
 }
 
+function defineNitroPlugin(def) {
+  return def;
+}
+
+const _ow8bWGpyFQuYjC3el50V55np35BMAcbcqi2trqYSFww = defineNitroPlugin(async () => {
+  console.log("[db] \u6570\u636E\u5E93\u914D\u7F6E\u5DF2\u52A0\u8F7D");
+  console.log("[db] \u7BA1\u7406\u5458\u5C06\u5728\u9996\u6B21\u767B\u5F55\u65F6\u81EA\u52A8\u521D\u59CB\u5316");
+  console.log("[db] \u7528\u6237\u540D\uFF1A\u7BA1\u7406\u5458\uFF0C\u5BC6\u7801\uFF1A1314520");
+});
+
 const plugins = [
   _onP_BNqR5r9ZxwDpzsXgcdUmzjj760quGkaD2Ir9rg,
 _EwqKvntwSBZfZ63sz4ATt1kR8NUnL3hSXp21WjF5BQ,
+_ow8bWGpyFQuYjC3el50V55np35BMAcbcqi2trqYSFww,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"1bd5b-d0jSW9jUmxchjYLWnGDlZokkNrE\"",
-    "mtime": "2026-06-07T13:13:01.289Z",
-    "size": 114011,
+    "etag": "\"1e8ee-EZUw6AZMYrf6W7MHQVzpakCcIbk\"",
+    "mtime": "2026-06-09T05:33:11.317Z",
+    "size": 125166,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"6e080-YPBwVG+8W7289DMsZxSBvfJYrrU\"",
-    "mtime": "2026-06-07T13:13:01.290Z",
-    "size": 450688,
+    "etag": "\"76e7e-V8Fa7MSKO3yojjAej4E53yrBzBU\"",
+    "mtime": "2026-06-09T05:33:11.317Z",
+    "size": 487038,
     "path": "index.mjs.map"
   }
 };
@@ -2726,6 +2740,11 @@ const _lazy_Tfm05L = () => Promise.resolve().then(function () { return login_pos
 const _lazy_xTG9k6 = () => Promise.resolve().then(function () { return messages_get$1; });
 const _lazy_GZlV0x = () => Promise.resolve().then(function () { return messages_post$1; });
 const _lazy_gtheov = () => Promise.resolve().then(function () { return messages_reply_post$1; });
+const _lazy_HioWCo = () => Promise.resolve().then(function () { return reply_post$1; });
+const _lazy_rKWJHe = () => Promise.resolve().then(function () { return top_get$1; });
+const _lazy_3jo6EG = () => Promise.resolve().then(function () { return view_post$1; });
+const _lazy_aSWK6n = () => Promise.resolve().then(function () { return profile_get$1; });
+const _lazy_WxBBRW = () => Promise.resolve().then(function () { return profile_post$1; });
 const _lazy_xCo3xo = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
@@ -2736,6 +2755,11 @@ const handlers = [
   { route: '/api/messages', handler: _lazy_xTG9k6, lazy: true, middleware: false, method: "get" },
   { route: '/api/messages', handler: _lazy_GZlV0x, lazy: true, middleware: false, method: "post" },
   { route: '/api/messages.reply', handler: _lazy_gtheov, lazy: true, middleware: false, method: "post" },
+  { route: '/api/messages/reply', handler: _lazy_HioWCo, lazy: true, middleware: false, method: "post" },
+  { route: '/api/messages/top', handler: _lazy_rKWJHe, lazy: true, middleware: false, method: "get" },
+  { route: '/api/messages/view', handler: _lazy_3jo6EG, lazy: true, middleware: false, method: "post" },
+  { route: '/api/user/profile', handler: _lazy_aSWK6n, lazy: true, middleware: false, method: "get" },
+  { route: '/api/user/profile', handler: _lazy_WxBBRW, lazy: true, middleware: false, method: "post" },
   { route: '/__nuxt_error', handler: _lazy_xCo3xo, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_xCo3xo, lazy: true, middleware: false, method: undefined }
@@ -3097,28 +3121,166 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   default: styles
 }, Symbol.toStringTag, { value: 'Module' }));
 
-let messages = [
-  {
-    id: 1,
-    user: "\u7CFB\u7EDF",
-    text: "\u6B22\u8FCE\u4F7F\u7528\u7559\u8A00\u677F\uFF01",
-    replies: [],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").notNull().default("user"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+});
+const userProfiles = sqliteTable("user_profiles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  age: integer("age"),
+  gender: text("gender"),
+  email: text("email"),
+  phone: text("phone"),
+  bio: text("bio"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+});
+const messages$1 = sqliteTable("messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  user: text("user").notNull(),
+  text: text("text").notNull(),
+  views: integer("views").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+});
+const replies = sqliteTable("replies", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  messageId: integer("message_id").notNull(),
+  user: text("user").notNull(),
+  text: text("text").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date())
+});
+
+let _db = null;
+function getDb() {
+  var _a;
+  if (_db) return _db;
+  try {
+    if (typeof useCloudflare === "function") {
+      const cf = useCloudflare();
+      if ((_a = cf == null ? void 0 : cf.env) == null ? void 0 : _a.DB) {
+        _db = drizzle(cf.env.DB);
+        return _db;
+      }
+    }
+    throw new Error("\u6570\u636E\u5E93\u8FDE\u63A5\u4E0D\u53EF\u7528\u3002\u8BF7\u786E\u4FDD\u5728 Nitro API \u8DEF\u7531\u4E2D\u4F7F\u7528\u6B64\u51FD\u6570\u3002");
+  } catch (error) {
+    console.error("[db] \u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25:", error);
+    throw error;
   }
-];
-function getNextMessageId() {
-  return messages.length > 0 ? Math.max(...messages.map((m) => m.id)) + 1 : 1;
+}
+async function findUser(username) {
+  const db = getDb();
+  const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+  return result[0] || null;
+}
+async function createUser(username, password, role = "user") {
+  const db = getDb();
+  const result = await db.insert(users).values({
+    username,
+    password,
+    role
+  }).returning();
+  return result[0];
+}
+async function getUserProfile(username) {
+  const db = getDb();
+  const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1);
+  return result[0] || null;
+}
+async function upsertUserProfile(username, profile) {
+  const db = getDb();
+  const existing = await getUserProfile(username);
+  if (existing) {
+    const result = await db.update(userProfiles).set({
+      ...profile,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq(userProfiles.username, username)).returning();
+    return result[0];
+  } else {
+    const result = await db.insert(userProfiles).values({
+      username,
+      ...profile
+    }).returning();
+    return result[0];
+  }
+}
+async function getAllMessages() {
+  const db = getDb();
+  const allMessages = await db.select().from(messages$1).orderBy(messages$1.createdAt);
+  const messagesWithReplies = await Promise.all(
+    allMessages.map(async (msg) => {
+      const msgReplies = await db.select().from(replies).where(eq(replies.messageId, msg.id)).orderBy(replies.createdAt);
+      return {
+        ...msg,
+        replies: msgReplies
+      };
+    })
+  );
+  return messagesWithReplies;
+}
+async function createMessage(user, text) {
+  const db = getDb();
+  const result = await db.insert(messages$1).values({
+    user,
+    text,
+    views: 0
+  }).returning();
+  return result[0];
+}
+async function incrementMessageViews(messageId) {
+  const db = getDb();
+  const msg = await db.select().from(messages$1).where(eq(messages$1.id, messageId)).limit(1);
+  if (!msg[0]) return false;
+  await db.update(messages$1).set({
+    views: (msg[0].views || 0) + 1
+  }).where(eq(messages$1.id, messageId));
+  return true;
+}
+async function getTopMessages(limit = 10) {
+  const db = getDb();
+  const result = await db.select().from(messages$1).orderBy(messages$1.views).limit(limit);
+  return result.reverse();
+}
+async function deleteMessage(messageId) {
+  const db = getDb();
+  await db.delete(replies).where(eq(replies.messageId, messageId));
+  await db.delete(messages$1).where(eq(messages$1.id, messageId));
+  return true;
+}
+async function createReply(messageId, user, text) {
+  const db = getDb();
+  const result = await db.insert(replies).values({
+    messageId,
+    user,
+    text
+  }).returning();
+  return result[0];
+}
+async function deleteReply(messageId, replyId) {
+  const db = getDb();
+  await db.delete(replies).where(eq(replies.id, replyId));
+  return true;
 }
 
 const deleteReply_post = defineEventHandler(async (event) => {
+  var _a;
   const body = await readBody(event);
   const { messageId, replyId } = body;
+  const messages = await getAllMessages();
   const msg = messages.find((m) => m.id === messageId);
-  if (!msg) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
-  const replyIdx = msg.replies.findIndex((r) => r.id === replyId);
-  if (replyIdx === -1) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u56DE\u590D" });
-  msg.replies.splice(replyIdx, 1);
-  return { ok: true };
+  if (!msg) {
+    throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  }
+  const reply = (_a = msg.replies) == null ? void 0 : _a.find((r) => r.id === replyId);
+  if (!reply) {
+    throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u56DE\u590D" });
+  }
+  await deleteReply(messageId, replyId);
+  return { success: true };
 });
 
 const deleteReply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3129,10 +3291,13 @@ const deleteReply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.define
 const delete_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { id } = body;
-  const idx = messages.findIndex((m) => m.id === id);
-  if (idx === -1) throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
-  messages.splice(idx, 1);
-  return { ok: true };
+  const messages = await getAllMessages();
+  const msg = messages.find((m) => m.id === id);
+  if (!msg) {
+    throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  }
+  await deleteMessage(id);
+  return { success: true };
 });
 
 const delete_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3142,30 +3307,57 @@ const delete_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
 
 const login_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { username, password } = body || {};
-  if (!username || !password) throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
-  if (!/^[\u4e00-\u9fa5]+$/.test(username)) throw createError({ statusCode: 400, statusMessage: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587" });
-  if (!/^\d{6,}$/.test(password)) throw createError({ statusCode: 400, statusMessage: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
-  const usersFile = new URL("../../data/users.json", globalThis._importMeta_.url);
-  const usersData = JSON.parse(await readFile(usersFile, "utf-8"));
-  if (username === "\u7BA1\u7406\u5458" && password === "123456") {
-    const admin = usersData.find((u) => u.username === "\u7BA1\u7406\u5458");
-    if (admin) {
-      admin.password = "123456";
-    } else {
-      usersData.push({ username: "\u7BA1\u7406\u5458", password: "123456", role: "admin" });
+  const { username, password, isRegister } = body || {};
+  if (!username || !password) {
+    throw createError({ statusCode: 400, message: "\u53C2\u6570\u7F3A\u5931" });
+  }
+  if (!/^[一-龥]+[一-龥0-9]*$/.test(username)) {
+    throw createError({ statusCode: 400, message: "\u7528\u6237\u540D\u5FC5\u987B\u4E3A\u4E2D\u6587\uFF08\u53EF\u4EE5\u5305\u542B\u6570\u5B57\uFF09" });
+  }
+  if (!/^\d{6,}$/.test(password)) {
+    throw createError({ statusCode: 400, message: "\u5BC6\u7801\u5FC5\u987B\u4E3A\u81F3\u5C116\u4F4D\u6570\u5B57" });
+  }
+  try {
+    getDb();
+  } catch (error) {
+    console.error("[login] \u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25:", error);
+    throw createError({ statusCode: 500, message: "\u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25\u3002\u8BF7\u786E\u4FDD\u5DF2\u90E8\u7F72\u5230 Cloudflare \u6216\u914D\u7F6E\u4E86\u672C\u5730 D1\u3002" });
+  }
+  const existingUser = await findUser(username);
+  if (isRegister) {
+    if (existingUser) {
+      throw createError({ statusCode: 409, message: "\u8BE5\u7528\u6237\u540D\u5DF2\u88AB\u6CE8\u518C" });
     }
-    await writeFile(usersFile, JSON.stringify(usersData, null, 2), "utf-8");
-    return { token: "admin-token", role: "admin" };
+    const newUser = await createUser(username, password, "user");
+    console.log("[login] \u6CE8\u518C\u65B0\u7528\u6237\uFF1A", username);
+    return {
+      success: true,
+      token: `${username}-${Date.now()}`,
+      role: newUser.role
+    };
+  } else {
+    if (!existingUser) {
+      if (username === "\u7BA1\u7406\u5458" && password === "1314520") {
+        const adminUser = await createUser("\u7BA1\u7406\u5458", "1314520", "admin");
+        console.log("[login] \u81EA\u52A8\u521B\u5EFA\u7BA1\u7406\u5458\u8D26\u53F7");
+        return {
+          success: true,
+          token: `${username}-${Date.now()}`,
+          role: adminUser.role
+        };
+      }
+      throw createError({ statusCode: 401, message: "\u7528\u6237\u4E0D\u5B58\u5728" });
+    }
+    if (existingUser.password !== password) {
+      throw createError({ statusCode: 401, message: "\u5BC6\u7801\u9519\u8BEF" });
+    }
+    console.log("[login] \u767B\u5F55\u6210\u529F\uFF1A", username);
+    return {
+      success: true,
+      token: `${username}-${Date.now()}`,
+      role: existingUser.role
+    };
   }
-  const user = usersData.find((u) => u.username === username);
-  if (user) {
-    if (user.password !== password) throw createError({ statusCode: 401, statusMessage: "\u5BC6\u7801\u9519\u8BEF" });
-    return { token: "user-token", role: user.role || "user" };
-  }
-  usersData.push({ username, password, role: "user" });
-  await writeFile(usersFile, JSON.stringify(usersData, null, 2), "utf-8");
-  return { token: "user-token", role: "user" };
 });
 
 const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3174,6 +3366,7 @@ const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProper
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const messages_get = defineEventHandler(async (event) => {
+  const messages = await getAllMessages();
   return messages;
 });
 
@@ -3184,22 +3377,28 @@ const messages_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProp
 
 const messages_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
-  if (!body || !body.text) throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
-  const id = getNextMessageId();
-  messages.push({
-    id,
-    user: body.user || "\u533F\u540D",
-    text: body.text || "",
-    replies: [],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
-  });
-  return { success: true };
+  if (!body || !body.text) {
+    throw createError({ statusCode: 400, statusMessage: "\u53C2\u6570\u7F3A\u5931" });
+  }
+  const message = await createMessage(body.user || "\u533F\u540D", body.text);
+  return { success: true, message };
 });
 
 const messages_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: messages_post
 }, Symbol.toStringTag, { value: 'Module' }));
+
+let messages = [
+  {
+    id: 1,
+    user: "\u7CFB\u7EDF",
+    text: "\u6B22\u8FCE\u4F7F\u7528\u7559\u8A00\u677F\uFF01",
+    replies: [],
+    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+    views: 0
+  }
+];
 
 const messages_reply_post = defineEventHandler(async (event) => {
   var _a;
@@ -3215,6 +3414,127 @@ const messages_reply_post = defineEventHandler(async (event) => {
 const messages_reply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: messages_reply_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const reply_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { id, text, user } = body;
+  const messages = await getAllMessages();
+  const msg = messages.find((m) => m.id === id);
+  if (!msg) {
+    throw createError({ statusCode: 404, statusMessage: "\u672A\u627E\u5230\u7559\u8A00" });
+  }
+  const reply = await createReply(id, user || "\u533F\u540D", text || "");
+  return { success: true, reply };
+});
+
+const reply_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: reply_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const top_get = defineEventHandler(async (event) => {
+  const query = getQuery$1(event);
+  const limit = parseInt(query.limit) || 10;
+  const topMessages = await getTopMessages(Math.min(limit, 50));
+  return {
+    success: true,
+    messages: topMessages.map((msg) => ({
+      id: msg.id,
+      user: msg.user,
+      text: msg.text.substring(0, 50) + (msg.text.length > 50 ? "..." : ""),
+      views: msg.views || 0,
+      createdAt: msg.createdAt
+    }))
+  };
+});
+
+const top_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: top_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const view_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { id } = body || {};
+  if (!id) {
+    throw createError({ statusCode: 400, message: "\u7559\u8A00 ID \u662F\u5FC5\u9700\u7684" });
+  }
+  const success = await incrementMessageViews(id);
+  if (!success) {
+    throw createError({ statusCode: 404, message: "\u7559\u8A00\u4E0D\u5B58\u5728" });
+  }
+  return { success: true };
+});
+
+const view_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: view_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const profile_get = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { username } = body || {};
+  if (!username) {
+    throw createError({ statusCode: 400, message: "\u7528\u6237\u540D\u662F\u5FC5\u9700\u7684" });
+  }
+  const profile = await getUserProfile(username);
+  if (!profile) {
+    return {
+      username,
+      age: null,
+      gender: null,
+      email: null,
+      phone: null,
+      bio: null,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+  }
+  return profile;
+});
+
+const profile_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: profile_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const profile_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { username, profile } = body || {};
+  if (!username) {
+    throw createError({ statusCode: 400, message: "\u7528\u6237\u540D\u662F\u5FC5\u9700\u7684" });
+  }
+  if (profile.age !== void 0 && profile.age !== null) {
+    if (typeof profile.age !== "number" || profile.age < 0 || profile.age > 150) {
+      throw createError({ statusCode: 400, message: "\u5E74\u9F84\u5FC5\u987B\u662F0-150\u4E4B\u95F4\u7684\u6570\u5B57" });
+    }
+  }
+  if (profile.email !== void 0 && profile.email !== null) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profile.email)) {
+      throw createError({ statusCode: 400, message: "\u8BF7\u8F93\u5165\u6709\u6548\u7684\u90AE\u7BB1\u5730\u5740" });
+    }
+  }
+  if (profile.phone !== void 0 && profile.phone !== null) {
+    const phoneRegex = /^[\d\-+\s()]{7,15}$/;
+    if (!phoneRegex.test(profile.phone)) {
+      throw createError({ statusCode: 400, message: "\u8BF7\u8F93\u5165\u6709\u6548\u7684\u7535\u8BDD\u53F7\u7801" });
+    }
+  }
+  const updatedProfile = await upsertUserProfile(username, {
+    age: profile.age || null,
+    gender: profile.gender || null,
+    email: profile.email || null,
+    phone: profile.phone || null,
+    bio: profile.bio || null
+  });
+  console.log("[profile] \u66F4\u65B0\u7528\u6237\u4FE1\u606F\uFF1A", username);
+  return { success: true, profile: updatedProfile };
+});
+
+const profile_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: profile_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {

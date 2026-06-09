@@ -20,7 +20,10 @@ declare global {
   const createError: typeof import('../../node_modules/h3').createError
   const createEvent: typeof import('../../node_modules/h3').createEvent
   const createEventStream: typeof import('../../node_modules/h3').createEventStream
+  const createMessage: typeof import('../../server/utils/db').createMessage
+  const createReply: typeof import('../../server/utils/db').createReply
   const createRouter: typeof import('../../node_modules/h3').createRouter
+  const createUser: typeof import('../../server/utils/db').createUser
   const defaultContentType: typeof import('../../node_modules/h3').defaultContentType
   const defineAppConfig: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/config').defineAppConfig
   const defineCachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').defineCachedEventHandler
@@ -39,13 +42,18 @@ declare global {
   const defineWebSocket: typeof import('../../node_modules/h3').defineWebSocket
   const defineWebSocketHandler: typeof import('../../node_modules/h3').defineWebSocketHandler
   const deleteCookie: typeof import('../../node_modules/h3').deleteCookie
+  const deleteMessage: typeof import('../../server/utils/db').deleteMessage
+  const deleteReply: typeof import('../../server/utils/db').deleteReply
   const dynamicEventHandler: typeof import('../../node_modules/h3').dynamicEventHandler
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
+  const findUser: typeof import('../../server/utils/db').findUser
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
+  const getAllMessages: typeof import('../../server/utils/db').getAllMessages
   const getCookie: typeof import('../../node_modules/h3').getCookie
+  const getDb: typeof import('../../server/utils/db').getDb
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
   const getMethod: typeof import('../../node_modules/h3').getMethod
@@ -69,10 +77,14 @@ declare global {
   const getRouterParam: typeof import('../../node_modules/h3').getRouterParam
   const getRouterParams: typeof import('../../node_modules/h3').getRouterParams
   const getSession: typeof import('../../node_modules/h3').getSession
+  const getTopMessages: typeof import('../../server/utils/db').getTopMessages
+  const getUserProfile: typeof import('../../server/utils/db').getUserProfile
   const getValidatedQuery: typeof import('../../node_modules/h3').getValidatedQuery
   const getValidatedRouterParams: typeof import('../../node_modules/h3').getValidatedRouterParams
   const handleCacheHeaders: typeof import('../../node_modules/h3').handleCacheHeaders
   const handleCors: typeof import('../../node_modules/h3').handleCors
+  const incrementMessageViews: typeof import('../../server/utils/db').incrementMessageViews
+  const initializeAdmin: typeof import('../../server/utils/db').initializeAdmin
   const isCorsOriginAllowed: typeof import('../../node_modules/h3').isCorsOriginAllowed
   const isError: typeof import('../../node_modules/h3').isError
   const isEvent: typeof import('../../node_modules/h3').isEvent
@@ -120,6 +132,7 @@ declare global {
   const toWebRequest: typeof import('../../node_modules/h3').toWebRequest
   const unsealSession: typeof import('../../node_modules/h3').unsealSession
   const updateSession: typeof import('../../node_modules/h3').updateSession
+  const upsertUserProfile: typeof import('../../server/utils/db').upsertUserProfile
   const useAppConfig: typeof import('../../node_modules/nitropack/dist/runtime/internal/config').useAppConfig
   const useBase: typeof import('../../node_modules/h3').useBase
   const useEvent: typeof import('../../node_modules/nitropack/dist/runtime/internal/context').useEvent
@@ -150,4 +163,5 @@ export { defineTask, runTask } from 'nitropack/runtime/internal/task';
 export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils';
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from 'E:/cangku/cloudflare-guestbook/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from 'E:/cangku/cloudflare-guestbook/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
+export { getDb, findUser, createUser, getUserProfile, upsertUserProfile, getAllMessages, createMessage, incrementMessageViews, getTopMessages, deleteMessage, createReply, deleteReply, initializeAdmin } from 'E:/cangku/cloudflare-guestbook/server/utils/db';
 export { users, messages, getNextMessageId } from 'E:/cangku/cloudflare-guestbook/server/utils/store';
