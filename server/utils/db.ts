@@ -1,5 +1,5 @@
 // server/utils/db.ts
-// 数据库工具函数 - 直接使用 Cloudflare D1
+// 数据库工具函数 - 使用NuxtHub的hubDatabase()
 
 import { users as storeUsers, messages as storeMessages, getNextMessageId } from './store'
 
@@ -13,28 +13,21 @@ let memoryReplies: any[] = []
 let _db: any = null
 let _isCloudflareEnv: boolean | null = null
 
-// 检测是否在 Cloudflare 环境中（简单检测）
+// 检测是否在 Cloudflare 环境中
 function isCloudflareEnvironment(): boolean {
   if (_isCloudflareEnv !== null) return _isCloudflareEnv
 
   console.log('[db] 🔍 检测Cloudflare环境...')
 
   try {
-    // 直接尝试获取Cloudflare环境
-    if (typeof useCloudflare === 'function') {
-      console.log('[db] useCloudflare函数可用')
-      const cf = useCloudflare()
-      console.log('[db] useCloudflare结果:', cf ? '有返回值' : 'null/undefined')
-      console.log('[db] cf.env:', cf?.env ? '存在' : '不存在')
-      console.log('[db] cf.env.DB:', cf?.env?.DB ? '存在' : '不存在')
-
-      if (cf?.env?.DB) {
-        _isCloudflareEnv = true
-        console.log('[db] ✅ 检测到 Cloudflare D1 数据库')
-        return _isCloudflareEnv
-      }
+    // 使用NuxtHub的hubDatabase()检测环境
+    if (typeof hubDatabase === 'function') {
+      console.log('[db] ✅ hubDatabase函数可用')
+      _isCloudflareEnv = true
+      console.log('[db] ✅ 检测到 Cloudflare D1 数据库')
+      return _isCloudflareEnv
     } else {
-      console.log('[db] useCloudflare函数不可用')
+      console.log('[db] ❌ hubDatabase函数不可用')
     }
     _isCloudflareEnv = false
     console.log('[db] ❌ 未检测到Cloudflare环境')
@@ -56,25 +49,16 @@ function getDb() {
   console.log('[db] 🔍 获取数据库实例...')
 
   try {
-    console.log('[db] 调用useCloudflare()...')
-    const cf = useCloudflare()
-    console.log('[db] useCloudflare返回:', cf ? '对象' : 'null')
-
-    if (cf?.env?.DB) {
-      console.log('[db] 找到DB绑定，初始化Drizzle...')
-      const { drizzle } = require('drizzle-orm/d1')
-      _db = drizzle(cf.env.DB)
-      console.log('[db] ✅ 成功连接 D1 数据库')
-      return _db
-    } else {
-      console.log('[db] ❌ 未找到DB绑定')
-      console.log('[db] cf.env:', JSON.stringify(cf?.env ? Object.keys(cf.env) : 'undefined'))
-    }
+    console.log('[db] 调用hubDatabase()...')
+    const db = hubDatabase()
+    console.log('[db] ✅ 成功连接 D1 数据库')
+    _db = db
+    return _db
   } catch (error) {
-    console.log('[db] ❌ 获取数据库绑定失败:', error)
+    console.log('[db] ❌ 获取数据库失败:', error)
   }
 
-  throw new Error('无法获取 D1 数据库绑定')
+  throw new Error('无法获取 D1 数据库')
 }
 
 // ========== 用户相关操作 ==========
