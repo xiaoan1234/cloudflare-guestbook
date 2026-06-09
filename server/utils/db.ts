@@ -18,12 +18,28 @@ function isCloudflareEnvironment(): boolean {
   if (_isCloudflareEnv !== null) return _isCloudflareEnv
 
   try {
+    // 方法1：检查 useCloudflare 函数
     if (typeof useCloudflare === 'function') {
-      const cf = useCloudflare()
-      _isCloudflareEnv = cf?.env?.DB !== undefined
-    } else {
-      _isCloudflareEnv = false
+      try {
+        const cf = useCloudflare()
+        if (cf?.env?.DB) {
+          _isCloudflareEnv = true
+          return _isCloudflareEnv
+        }
+      } catch {
+        // useCloudflare 可能在某些上下文中抛出错误
+      }
     }
+
+    // 方法2：通过环境变量或全局变量检测
+    if (typeof globalThis !== 'undefined') {
+      if ((globalThis as any).__cf_database_id || (globalThis as any).__NUXT_HUB_DATABASE) {
+        _isCloudflareEnv = true
+        return _isCloudflareEnv
+      }
+    }
+
+    _isCloudflareEnv = false
   } catch {
     _isCloudflareEnv = false
   }
@@ -63,9 +79,12 @@ export async function findUser(username: string) {
       const { users } = require('../database/schema')
       const { eq } = require('drizzle-orm')
       const result = await db.select().from(users).where(eq(users.username, username)).limit(1)
+      console.log('[db] 从D1数据库查询用户:', username, result[0] ? '找到' : '未找到')
       return result[0] || null
     } catch (error) {
-      console.warn('[db] 数据库查询失败，使用内存存储')
+      console.error('[db] D1数据库查询失败:', error)
+      // 在生产环境中，这应该是错误而不是fallback
+      throw error
     }
   }
 
@@ -81,9 +100,12 @@ export async function createUser(username: string, password: string, role: strin
       const db = getDb()
       const { users } = require('../database/schema')
       const result = await db.insert(users).values({ username, password, role }).returning()
+      console.log('[db] 在D1数据库创建用户:', username)
       return result[0]
     } catch (error) {
-      console.warn('[db] 数据库插入失败，使用内存存储')
+      console.error('[db] D1数据库插入失败:', error)
+      // 在生产环境中，这应该是错误而不是fallback
+      throw error
     }
   }
 
@@ -102,9 +124,11 @@ export async function getUserProfile(username: string) {
       const { userProfiles } = require('../database/schema')
       const { eq } = require('drizzle-orm')
       const result = await db.select().from(userProfiles).where(eq(userProfiles.username, username)).limit(1)
+      console.log('[db] 从D1数据库查询用户个人信息:', username)
       return result[0] || null
     } catch (error) {
-      console.warn('[db] 数据库查询失败，使用内存存储')
+      console.error('[db] D1数据库查询用户个人信息失败:', error)
+      throw error
     }
   }
 
@@ -133,15 +157,18 @@ export async function upsertUserProfile(username: string, profile: {
           .set({ ...profile, updatedAt: new Date() })
           .where(eq(userProfiles.username, username))
           .returning()
+        console.log('[db] 在D1数据库更新用户个人信息:', username)
         return result[0]
       } else {
         const result = await db.insert(userProfiles)
           .values({ username, ...profile })
           .returning()
+        console.log('[db] 在D1数据库创建用户个人信息:', username)
         return result[0]
       }
     } catch (error) {
-      console.warn('[db] 数据库操作失败，使用内存存储')
+      console.error('[db] D1数据库操作用户个人信息失败:', error)
+      throw error
     }
   }
 
@@ -176,9 +203,11 @@ export async function getAllMessages() {
         })
       )
 
+      console.log('[db] 从D1数据库获取留言:', messagesWithReplies.length, '条')
       return messagesWithReplies
     } catch (error) {
-      console.warn('[db] 数据库查询失败，使用内存存储')
+      console.error('[db] D1数据库查询留言失败:', error)
+      throw error
     }
   }
 
@@ -196,9 +225,11 @@ export async function createMessage(user: string, text: string) {
       const db = getDb()
       const { messages } = require('../database/schema')
       const result = await db.insert(messages).values({ user, text, views: 0 }).returning()
+      console.log('[db] 在D1数据库创建留言:', user)
       return result[0]
     } catch (error) {
-      console.warn('[db] 数据库插入失败，使用内存存储')
+      console.error('[db] D1数据库插入留言失败:', error)
+      throw error
     }
   }
 
@@ -230,9 +261,11 @@ export async function incrementMessageViews(messageId: number) {
         .set({ views: (msg[0].views || 0) + 1 })
         .where(eq(messages.id, messageId))
 
+      console.log('[db] 在D1数据库增加留言浏览量:', messageId)
       return true
     } catch (error) {
-      console.warn('[db] 数据库更新失败，使用内存存储')
+      console.error('[db] D1数据库更新浏览量失败:', error)
+      throw error
     }
   }
 
@@ -253,9 +286,11 @@ export async function getTopMessages(limit: number = 10) {
       const { messages } = require('../database/schema')
 
       const result = await db.select().from(messages).orderBy(messages.views).limit(limit)
+      console.log('[db] 从D1数据库获取热门留言:', result.length, '条')
       return result.reverse()
     } catch (error) {
-      console.warn('[db] 数据库查询失败，使用内存存储')
+      console.error('[db] D1数据库查询热门留言失败:', error)
+      throw error
     }
   }
 
@@ -275,9 +310,11 @@ export async function deleteMessage(messageId: number) {
 
       await db.delete(replies).where(eq(replies.messageId, messageId))
       await db.delete(messages).where(eq(messages.id, messageId))
+      console.log('[db] 从D1数据库删除留言:', messageId)
       return true
     } catch (error) {
-      console.warn('[db] 数据库删除失败，使用内存存储')
+      console.error('[db] D1数据库删除留言失败:', error)
+      throw error
     }
   }
 
@@ -296,9 +333,11 @@ export async function createReply(messageId: number, user: string, text: string)
       const db = getDb()
       const { replies } = require('../database/schema')
       const result = await db.insert(replies).values({ messageId, user, text }).returning()
+      console.log('[db] 在D1数据库创建回复:', user, '->', messageId)
       return result[0]
     } catch (error) {
-      console.warn('[db] 数据库插入失败，使用内存存储')
+      console.error('[db] D1数据库插入回复失败:', error)
+      throw error
     }
   }
 
@@ -324,9 +363,11 @@ export async function deleteReply(messageId: number, replyId: number) {
       const { eq } = require('drizzle-orm')
 
       await db.delete(replies).where(eq(replies.id, replyId))
+      console.log('[db] 从D1数据库删除回复:', replyId)
       return true
     } catch (error) {
-      console.warn('[db] 数据库删除失败，使用内存存储')
+      console.error('[db] D1数据库删除回复失败:', error)
+      throw error
     }
   }
 
